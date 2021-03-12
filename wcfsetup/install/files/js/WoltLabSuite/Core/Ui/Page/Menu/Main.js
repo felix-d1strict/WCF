@@ -1,86 +1,111 @@
 /**
  * Provides the touch-friendly fullscreen main menu.
  *
- * @author  Alexander Ebert
- * @copyright  2001-2019 WoltLab GmbH
- * @license  GNU Lesser General Public License <http://opensource.org/licenses/lgpl-license.php>
- * @module  WoltLabSuite/Core/Ui/Page/Menu/Main
+ * @author Alexander Ebert
+ * @copyright 2001-2021 WoltLab GmbH
+ * @license GNU Lesser General Public License <http://opensource.org/licenses/lgpl-license.php>
+ * @module WoltLabSuite/Core/Ui/Page/Menu/Main
  */
-define(["require", "exports", "tslib", "../../../Core", "../../../Dom/Util", "../../../Language", "./Abstract"], function (require, exports, tslib_1, Core, Util_1, Language, Abstract_1) {
+define(["require", "exports"], function (require, exports) {
     "use strict";
-    Core = tslib_1.__importStar(Core);
-    Util_1 = tslib_1.__importDefault(Util_1);
-    Language = tslib_1.__importStar(Language);
-    Abstract_1 = tslib_1.__importDefault(Abstract_1);
-    class UiPageMenuMain extends Abstract_1.default {
-        /**
-         * Initializes the touch-friendly fullscreen main menu.
-         */
-        constructor() {
-            super("com.woltlab.wcf.MainMenuMobile", "pageMainMenuMobile", "#pageHeader .mainMenu");
-            this.hasItems = false;
-            this.title = document.getElementById("pageMainMenuMobilePageOptionsTitle");
-            if (this.title !== null) {
-                this.navigationList = document.querySelector(".jsPageNavigationIcons");
-            }
-            this.button.setAttribute("aria-label", Language.get("wcf.menu.page"));
-            this.button.setAttribute("role", "button");
-        }
-        open(event) {
-            if (!super.open(event)) {
-                return false;
-            }
-            if (this.title === null) {
-                return true;
-            }
-            this.hasItems = this.navigationList && this.navigationList.childElementCount > 0;
-            if (this.hasItems) {
-                while (this.navigationList.childElementCount) {
-                    const item = this.navigationList.children[0];
-                    item.classList.add("menuOverlayItem", "menuOverlayItemOption");
-                    item.addEventListener("click", (ev) => {
-                        ev.stopPropagation();
-                        this.close();
-                    });
-                    const link = item.children[0];
-                    link.classList.add("menuOverlayItemLink");
-                    link.classList.add("box24");
-                    link.children[1].classList.remove("invisible");
-                    link.children[1].classList.add("menuOverlayItemTitle");
-                    this.title.insertAdjacentElement("afterend", item);
-                }
-                Util_1.default.show(this.title);
-            }
-            else {
-                Util_1.default.hide(this.title);
-            }
-            return true;
-        }
-        close(event) {
-            if (!super.close(event)) {
-                return false;
-            }
-            if (this.hasItems) {
-                Util_1.default.hide(this.title);
-                let item = this.title.nextElementSibling;
-                while (item && item.classList.contains("menuOverlayItemOption")) {
-                    item.classList.remove("menuOverlayItem", "menuOverlayItemOption");
-                    item.removeEventListener("click", (ev) => {
-                        ev.stopPropagation();
-                        this.close();
-                    });
-                    const link = item.children[0];
-                    link.classList.remove("menuOverlayItemLink");
-                    link.classList.remove("box24");
-                    link.children[1].classList.add("invisible");
-                    link.children[1].classList.remove("menuOverlayItemTitle");
-                    this.navigationList.appendChild(item);
-                    item = item.nextElementSibling;
-                }
-            }
-            return true;
-        }
+    Object.defineProperty(exports, "__esModule", { value: true });
+    exports.disable = exports.enable = void 0;
+    const _container = document.createElement("div");
+    const _mainMenu = document.querySelector(".mainMenu .boxMenu");
+    const _menuItems = new Map();
+    const _menuItemStructure = new Map();
+    function buildMenu() {
+        _container.classList.add("pageMenuOverlayContainer");
+        _container.dataset.menu = "main";
+        findMenuItems(_mainMenu, "");
+        console.log(_menuItems, _menuItemStructure);
+        document.body.appendChild(_container);
+        showMenu();
     }
-    Core.enableLegacyInheritance(UiPageMenuMain);
-    return UiPageMenuMain;
+    function findMenuItems(parent, parentIdentifier) {
+        const menuItems = [];
+        Array.from(parent.children).forEach((child) => {
+            const identifier = child.dataset.identifier;
+            const link = child.querySelector(".boxMenuLink");
+            _menuItems.set(identifier, link);
+            menuItems.push(identifier);
+            if (child.classList.contains("boxMenuHasChildren")) {
+                const ol = child.querySelector("ol");
+                findMenuItems(ol, identifier);
+            }
+        });
+        _menuItemStructure.set(parentIdentifier, menuItems);
+    }
+    function showMenu() {
+        const wrapper = document.createElement("div");
+        wrapper.classList.add("pageMenuOverlayWrapper");
+        const menu = document.createElement("div");
+        menu.classList.add("pageMenuOverlayMenu");
+        const header = document.createElement("div");
+        header.classList.add("pageMenuOverlayHeader");
+        const headerLink = document.createElement("a");
+        headerLink.classList.add("pageMenuOverlayHeaderLink");
+        headerLink.dataset.type = "home";
+        headerLink.href = "#";
+        headerLink.addEventListener("click", (event) => event.preventDefault());
+        const headerText = document.createElement("span");
+        headerText.classList.add("pageMenuOverlayHeaderText");
+        headerText.textContent = "WoltLab Suite";
+        headerLink.appendChild(headerText);
+        header.appendChild(headerLink);
+        menu.appendChild(header);
+        const group = document.createElement("div");
+        group.classList.add("pageMenuOverlayItemGroup");
+        _menuItemStructure.get("").forEach((identifier) => {
+            const item = _menuItems.get(identifier);
+            const menuItem = document.createElement("div");
+            menuItem.classList.add("pageMenuOverlayItem");
+            const link = document.createElement("a");
+            link.classList.add("pageMenuOverlayItemLink");
+            link.dataset.identifier = identifier;
+            link.href = item.href;
+            link.textContent = item.textContent;
+            menuItem.appendChild(link);
+            if (_menuItemStructure.has(identifier)) {
+                const moreLink = document.createElement("a");
+                moreLink.classList.add("pageMenuOverlayItemLinkMore");
+                moreLink.href = "#";
+                moreLink.addEventListener("click", (event) => {
+                    event.preventDefault();
+                    moreLink.classList.toggle("open");
+                });
+                menuItem.appendChild(moreLink);
+                const subMenu = document.createElement("div");
+                subMenu.classList.add("pageMenuOverlaySubMenu");
+                buildSubMenu(subMenu, identifier, 2);
+                menuItem.appendChild(subMenu);
+            }
+            group.appendChild(menuItem);
+        });
+        menu.appendChild(group);
+        wrapper.appendChild(menu);
+        _container.appendChild(wrapper);
+    }
+    function buildSubMenu(subMenu, parentIdentifier, depth) {
+        _menuItemStructure.get(parentIdentifier).forEach((identifier) => {
+            const displayDepth = Math.min(depth, 3);
+            const menuItem = document.createElement("a");
+            menuItem.classList.add("pageMenuOverlaySubMenuItem", `pageMenuOverlaySubMenuDepth${displayDepth}`);
+            menuItem.dataset.identifier = identifier;
+            const link = _menuItems.get(identifier);
+            menuItem.href = link.href;
+            menuItem.textContent = link.textContent;
+            subMenu.appendChild(menuItem);
+            if (_menuItemStructure.has(identifier)) {
+                buildSubMenu(subMenu, identifier, depth + 1);
+            }
+        });
+    }
+    function hideMenu() { }
+    function enable() {
+        buildMenu();
+    }
+    exports.enable = enable;
+    function disable() { }
+    exports.disable = disable;
 });

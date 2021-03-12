@@ -1,3 +1,176 @@
+.pageMenuOverlayContainer {
+	background-color: rgba(0, 0, 0, 0.4);
+	bottom: 0;
+	display: flex;
+	left: 0;
+	position: fixed;
+	right: 0;
+	top: 0;
+	z-index: 320;
+
+	&::after {
+		box-shadow: inset 7px 0 10px -7px rgba(0, 0, 0, 0.6);
+		content: "";
+		flex: 0 0 50px;
+		pointer-events: none;
+		width: 50px;
+	}
+}
+
+.pageMenuOverlayWrapper {
+	flex: 1 auto;
+	max-width: 350px;
+}
+
+.pageMenuOverlayMenu {
+	background-color: $wcfContentBackground;
+	color: $wcfContentText;
+	height: 100%;
+	overflow: hidden;
+	padding-bottom: 20px;
+}
+
+.pageMenuOverlayHeader {
+	background-color: $wcfSidebarBackground;
+	color: $wcfSidebarHeadlineText;
+	display: flex;
+	height: 80px;
+}
+
+.pageMenuOverlayHeaderLink {
+	align-items: center;
+	align-self: flex-end;
+	color: inherit;
+	display: flex;
+	padding: 10px 20px;
+
+	&:hover {
+		color: inherit;
+	}
+}
+
+.pageMenuOverlayHeaderText {
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+
+	@include wcfFontHeadline;
+
+	font-weight: 600;
+}
+
+.pageMenuOverlayItemGroup {
+	border: 1px solid $wcfContentBorderInner;
+	border-width: 1px 0;
+}
+
+.pageMenuOverlayItem {
+	display: flex;
+	flex-wrap: wrap;
+
+	&:not(:first-child) {
+		border-top: 1px solid $wcfContentBorderInner;
+	}
+}
+
+.pageMenuOverlayItemLink {
+	color: inherit;
+	flex: 1 auto;
+	justify-content: space-between;
+	overflow: hidden;
+	padding: 10px 10px 10px 20px;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+
+	&:hover {
+		color: inherit;
+	}
+
+	&:not(:first-child) {
+		margin-top: 5px;
+	}
+
+	&:not(:last-child) {
+		border-right: 1px solid $wcfContentBorderInner;
+	}
+}
+
+.pageMenuOverlayItemLinkMore {
+	align-items: center;
+	color: inherit;
+	display: flex;
+	flex: 0 0 auto;
+	padding: 10px 15px;
+	position: relative;
+	text-align: center;
+
+	&::before {
+		content: $fa-var-angle-down;
+		font-family: FontAwesome;
+		font-size: 14px;
+		height: 16px;
+		line-height: 16px;
+		transition: transform 0.24s ease-in-out;
+		transform: rotate(0deg);
+		width: 16px;
+	}
+
+	&:hover {
+		color: inherit;
+	}
+
+	&.open {
+		&::before {
+			transform: rotate(180deg);
+		}
+
+		+ .pageMenuOverlaySubMenu {
+			display: block;
+		}
+	}
+}
+
+.pageMenuOverlaySubMenu {
+	box-shadow: inset 0 11px 8px -10px rgba(0, 0, 0, 0.17), inset 0 -11px 8px -10px rgba(0, 0, 0, 0.17);
+	display: none;
+	flex: 0 0 100%;
+	padding: 5px 0;
+}
+
+.pageMenuOverlayItem:last-child .pageMenuOverlaySubMenu {
+	border-top: 1px solid $wcfContentBorderInner;
+	box-shadow: inset 0 11px 8px -10px rgba(0, 0, 0, 0.17);
+	padding-bottom: 0;
+}
+
+.pageMenuOverlaySubMenuItem {
+	color: inherit;
+	display: block;
+	overflow: hidden;
+	padding: 10px;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+
+	&:hover {
+		color: inherit;
+	}
+
+	&.pageMenuOverlaySubMenuDepth2 {
+		margin-left: 20px;
+	}
+
+	&.pageMenuOverlaySubMenuDepth3 {
+		/* A full 40px indent looks awkward. */
+		margin-left: 35px;
+	}
+}
+
+/*
+	###################
+	### L E G A C Y ###
+	###################
+*/
+
 .menuOverlayMobileContainer {
 	background-color: rgba(0, 0, 0, 0.4);
 	bottom: 0;
@@ -113,7 +286,7 @@
 		align-items: center;
 		background-color: $wcfHeaderMenuLinkBackground;
 		border-radius: 50%;
-		box-shadow: 0 0 10px rgba(0, 0, 0, .34);
+		box-shadow: 0 0 10px rgba(0, 0, 0, 0.34);
 		content: $fa-var-times;
 		color: $wcfHeaderMenuLink;
 		display: flex;

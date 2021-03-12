@@ -6,7 +6,7 @@
  * @license  GNU Lesser General Public License <http://opensource.org/licenses/lgpl-license.php>
  * @module  WoltLabSuite/Core/Ui/Mobile
  */
-define(["require", "exports", "tslib", "../Core", "../Dom/Change/Listener", "../Environment", "./Alignment", "./CloseOverlay", "./Dropdown/Reusable", "./Page/Menu/Main", "./Page/Menu/User", "./Screen"], function (require, exports, tslib_1, Core, Listener_1, Environment, UiAlignment, CloseOverlay_1, UiDropdownReusable, Main_1, User_1, UiScreen) {
+define(["require", "exports", "tslib", "../Core", "../Dom/Change/Listener", "../Environment", "./Alignment", "./CloseOverlay", "./Dropdown/Reusable", "./Page/Menu/Main", "./Page/Menu/User", "./Screen"], function (require, exports, tslib_1, Core, Listener_1, Environment, UiAlignment, CloseOverlay_1, UiDropdownReusable, UiPageMenuMain, User_1, UiScreen) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.removeShadow = exports.rebuildShadow = exports.disableShadow = exports.disable = exports.enableShadow = exports.enable = exports.setup = void 0;
@@ -16,9 +16,15 @@ define(["require", "exports", "tslib", "../Core", "../Dom/Change/Listener", "../
     UiAlignment = tslib_1.__importStar(UiAlignment);
     CloseOverlay_1 = tslib_1.__importDefault(CloseOverlay_1);
     UiDropdownReusable = tslib_1.__importStar(UiDropdownReusable);
-    Main_1 = tslib_1.__importDefault(Main_1);
+    UiPageMenuMain = tslib_1.__importStar(UiPageMenuMain);
     User_1 = tslib_1.__importDefault(User_1);
     UiScreen = tslib_1.__importStar(UiScreen);
+    /*
+    interface MainMenuMorePayload {
+      identifier: string;
+      handler: UiPageMenuMain;
+    }
+    */
     let _dropdownMenu = null;
     let _dropdownMenuMessage = null;
     let _enabled = false;
@@ -26,7 +32,7 @@ define(["require", "exports", "tslib", "../Core", "../Dom/Change/Listener", "../
     let _enableMobileMenu = false;
     const _knownMessages = new WeakSet();
     let _mobileSidebarEnabled = false;
-    let _pageMenuMain;
+    //let _pageMenuMain: UiPageMenuMain;
     let _pageMenuUser;
     let _messageGroups = null;
     const _sidebars = [];
@@ -40,6 +46,7 @@ define(["require", "exports", "tslib", "../Core", "../Dom/Change/Listener", "../
             initButtonGroupNavigation();
             initMessages();
         });
+        UiPageMenuMain.enable();
     }
     function initButtonGroupNavigation() {
         document.querySelectorAll(".buttonGroupNavigation").forEach((navigation) => {
@@ -104,7 +111,7 @@ define(["require", "exports", "tslib", "../Core", "../Dom/Change/Listener", "../
     }
     function initMobileMenu() {
         if (_enableMobileMenu) {
-            _pageMenuMain = new Main_1.default();
+            //_pageMenuMain = new UiPageMenuMain();
             _pageMenuUser = new User_1.default();
         }
     }
@@ -282,7 +289,7 @@ define(["require", "exports", "tslib", "../Core", "../Dom/Change/Listener", "../
     function enable() {
         _enabled = true;
         if (_enableMobileMenu) {
-            _pageMenuMain.enable();
+            UiPageMenuMain.enable();
             _pageMenuUser.enable();
         }
     }
@@ -302,7 +309,7 @@ define(["require", "exports", "tslib", "../Core", "../Dom/Change/Listener", "../
     function disable() {
         _enabled = false;
         if (_enableMobileMenu) {
-            _pageMenuMain.disable();
+            UiPageMenuMain.disable();
             _pageMenuUser.disable();
         }
     }
