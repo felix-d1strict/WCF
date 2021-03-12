@@ -1,25 +1,44 @@
 .pageMenuOverlayContainer {
-	background-color: rgba(0, 0, 0, 0.4);
+	background-color: rgba(0, 0, 0, 0);
 	bottom: 0;
 	display: flex;
 	left: 0;
 	position: fixed;
 	right: 0;
 	top: 0;
+	transition: visibility 0s linear .24s;
+	visibility: hidden;
 	z-index: 320;
 
-	&::after {
-		box-shadow: inset 7px 0 10px -7px rgba(0, 0, 0, 0.6);
-		content: "";
-		flex: 0 0 50px;
-		pointer-events: none;
-		width: 50px;
+	&.open {
+		background-color: rgba(0, 0, 0, .3);
+		visibility: visible;
+		transition-delay: 0s;
+
+		.pageMenuOverlayWrapper {
+			transform: translateX(0);
+		}
 	}
 }
 
 .pageMenuOverlayWrapper {
 	flex: 1 auto;
+	margin-right: 50px;
 	max-width: 350px;
+	position: relative;
+	transform: translateX(-100%);
+	transition: transform .24s ease-in-out;
+
+	&::after {
+		bottom: 0;
+		box-shadow: inset 7px 0 10px -7px rgba(0, 0, 0, 0.6);
+		content: "";
+		pointer-events: none;
+		position: absolute;
+		right: -50px;
+		top: 0;
+		width: 50px;
+	}
 }
 
 .pageMenuOverlayMenu {

@@ -7,22 +7,52 @@
  * @module WoltLabSuite/Core/Ui/Page/Menu/Main
  */
 
+import DomUtil from "../../../Dom/Util";
+
+const _callbackOpen = (event: Event) => {
+  event.preventDefault();
+  event.stopPropagation();
+
+  showMenu();
+};
 const _container = document.createElement("div");
+const _footerMenu = document.querySelector(
+  '.box[data-box-identifier="com.woltlab.wcf.FooterMenu"] .boxMenu',
+) as HTMLOListElement | null;
 const _mainMenu = document.querySelector(".mainMenu .boxMenu") as HTMLOListElement;
 const _menuItems = new Map<string, HTMLAnchorElement>();
 const _menuItemStructure = new Map<string, string[]>();
 
 function buildMenu(): void {
-  _container.classList.add("pageMenuOverlayContainer");
-  _container.dataset.menu = "main";
+  if (!_container.classList.contains("pageMenuOverlayContainer")) {
+    _container.classList.add("pageMenuOverlayContainer");
+    _container.dataset.menu = "main";
+    _container.addEventListener("click", (event) => {
+      if (event.target === _container) {
+        event.preventDefault();
 
-  findMenuItems(_mainMenu, "");
+        hideMenu();
+      }
+    });
 
-  console.log(_menuItems, _menuItemStructure);
+    const wrapper = document.createElement("div");
+    wrapper.classList.add("pageMenuOverlayWrapper");
 
-  document.body.appendChild(_container);
+    findMenuItems(_mainMenu, "");
+    const mainMenu = buildMenuItems();
+    wrapper.appendChild(mainMenu);
 
-  showMenu();
+    if (_footerMenu) {
+      _menuItems.clear();
+      _menuItemStructure.clear();
+
+      findMenuItems(_footerMenu, "");
+      const footerMenu = buildMenuItems();
+      wrapper.appendChild(footerMenu);
+    }
+
+    _container.appendChild(wrapper);
+  }
 }
 
 function findMenuItems(parent: HTMLElement, parentIdentifier: string): void {
@@ -44,10 +74,7 @@ function findMenuItems(parent: HTMLElement, parentIdentifier: string): void {
   _menuItemStructure.set(parentIdentifier, menuItems);
 }
 
-function showMenu(): void {
-  const wrapper = document.createElement("div");
-  wrapper.classList.add("pageMenuOverlayWrapper");
-
+function buildMenuItems(): HTMLDivElement {
   const menu = document.createElement("div");
   menu.classList.add("pageMenuOverlayMenu");
 
@@ -108,8 +135,8 @@ function showMenu(): void {
   });
 
   menu.appendChild(group);
-  wrapper.appendChild(menu);
-  _container.appendChild(wrapper);
+
+  return menu;
 }
 
 function buildSubMenu(subMenu: HTMLDivElement, parentIdentifier: string, depth: number): void {
@@ -132,10 +159,24 @@ function buildSubMenu(subMenu: HTMLDivElement, parentIdentifier: string, depth: 
   });
 }
 
-function hideMenu(): void {}
+function showMenu(): void {
+  _container.classList.add("open");
+}
+
+function hideMenu(): void {
+  _container.classList.remove("open");
+}
 
 export function enable(): void {
   buildMenu();
+
+  document.querySelector(".mainMenu")!.addEventListener("click", _callbackOpen);
+
+  document.body.appendChild(_container);
 }
 
-export function disable(): void {}
+export function disable(): void {
+  _container.remove();
+
+  document.querySelector(".mainMenu")!.removeEventListener("click", _callbackOpen);
+}

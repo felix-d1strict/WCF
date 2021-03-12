@@ -10,17 +10,40 @@ define(["require", "exports"], function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.disable = exports.enable = void 0;
+    const _callbackOpen = (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        showMenu();
+    };
     const _container = document.createElement("div");
+    const _footerMenu = document.querySelector('.box[data-box-identifier="com.woltlab.wcf.FooterMenu"] .boxMenu');
     const _mainMenu = document.querySelector(".mainMenu .boxMenu");
     const _menuItems = new Map();
     const _menuItemStructure = new Map();
     function buildMenu() {
-        _container.classList.add("pageMenuOverlayContainer");
-        _container.dataset.menu = "main";
-        findMenuItems(_mainMenu, "");
-        console.log(_menuItems, _menuItemStructure);
-        document.body.appendChild(_container);
-        showMenu();
+        if (!_container.classList.contains("pageMenuOverlayContainer")) {
+            _container.classList.add("pageMenuOverlayContainer");
+            _container.dataset.menu = "main";
+            _container.addEventListener("click", (event) => {
+                if (event.target === _container) {
+                    event.preventDefault();
+                    hideMenu();
+                }
+            });
+            const wrapper = document.createElement("div");
+            wrapper.classList.add("pageMenuOverlayWrapper");
+            findMenuItems(_mainMenu, "");
+            const mainMenu = buildMenuItems();
+            wrapper.appendChild(mainMenu);
+            if (_footerMenu) {
+                _menuItems.clear();
+                _menuItemStructure.clear();
+                findMenuItems(_footerMenu, "");
+                const footerMenu = buildMenuItems();
+                wrapper.appendChild(footerMenu);
+            }
+            _container.appendChild(wrapper);
+        }
     }
     function findMenuItems(parent, parentIdentifier) {
         const menuItems = [];
@@ -36,9 +59,7 @@ define(["require", "exports"], function (require, exports) {
         });
         _menuItemStructure.set(parentIdentifier, menuItems);
     }
-    function showMenu() {
-        const wrapper = document.createElement("div");
-        wrapper.classList.add("pageMenuOverlayWrapper");
+    function buildMenuItems() {
         const menu = document.createElement("div");
         menu.classList.add("pageMenuOverlayMenu");
         const header = document.createElement("div");
@@ -83,8 +104,7 @@ define(["require", "exports"], function (require, exports) {
             group.appendChild(menuItem);
         });
         menu.appendChild(group);
-        wrapper.appendChild(menu);
-        _container.appendChild(wrapper);
+        return menu;
     }
     function buildSubMenu(subMenu, parentIdentifier, depth) {
         _menuItemStructure.get(parentIdentifier).forEach((identifier) => {
@@ -101,11 +121,21 @@ define(["require", "exports"], function (require, exports) {
             }
         });
     }
-    function hideMenu() { }
+    function showMenu() {
+        _container.classList.add("open");
+    }
+    function hideMenu() {
+        _container.classList.remove("open");
+    }
     function enable() {
         buildMenu();
+        document.querySelector(".mainMenu").addEventListener("click", _callbackOpen);
+        document.body.appendChild(_container);
     }
     exports.enable = enable;
-    function disable() { }
+    function disable() {
+        _container.remove();
+        document.querySelector(".mainMenu").removeEventListener("click", _callbackOpen);
+    }
     exports.disable = disable;
 });
