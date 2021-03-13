@@ -22,7 +22,11 @@
 }
 
 .pageMenuOverlayWrapper {
+	background-color: $wcfContentBackground;
+	color: $wcfContentText;
+	display: flex;
 	flex: 1 auto;
+	flex-direction: column;
 	margin-right: 50px;
 	max-width: 350px;
 	position: relative;
@@ -41,20 +45,21 @@
 	}
 }
 
-.pageMenuOverlayMenu {
-	background-color: $wcfContentBackground;
-	color: $wcfContentText;
-	height: 100%;
-	overflow: hidden;
-	padding-bottom: 20px;
-}
-
 .pageMenuOverlayHeader {
 	background-color: $wcfSidebarBackground;
 	border-bottom: 1px solid $wcfContentBorderInner;
 	color: $wcfSidebarHeadlineText;
 	display: flex;
-	height: 80px;
+	flex: 0 0 80px;
+}
+
+.pageMenuOverlayMenu {
+	display: flex;
+	flex: 1 auto;
+	flex-direction: column;
+	justify-content: space-between;
+	overflow: auto;
+	padding-bottom: 20px;
 }
 
 .pageMenuOverlayHeaderLink {
@@ -83,6 +88,11 @@
 	border-bottom: 1px solid $wcfContentBorderInner;
 	margin-left: 20px;
 	margin-right: 20px;
+
+	&:not(:first-child) {
+		border-top: 1px solid $wcfContentBorderInner;
+		margin-top: 60px;
+	}
 }
 
 .pageMenuOverlayItem {
@@ -119,7 +129,7 @@
 	text-align: center;
 
 	&::before {
-		border-left: 1px solid $wcfContentBorderInner;
+		border-left: 1px dashed $wcfContentBorderInner;
 		bottom: 7px;
 		content: "";
 		left: -1px;

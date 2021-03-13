@@ -7,7 +7,7 @@
  * @module WoltLabSuite/Core/Ui/Page/Menu/Main
  */
 
-import DomUtil from "../../../Dom/Util";
+import * as UiScreen from "../../Screen";
 
 const _callbackOpen = (event: Event) => {
   event.preventDefault();
@@ -38,9 +38,15 @@ function buildMenu(): void {
     const wrapper = document.createElement("div");
     wrapper.classList.add("pageMenuOverlayWrapper");
 
+    const header = buildHeader();
+    wrapper.appendChild(header);
+
+    const menuContainer = document.createElement("div");
+    menuContainer.classList.add("pageMenuOverlayMenu");
+
     findMenuItems(_mainMenu, "");
     const mainMenu = buildMenuItems();
-    wrapper.appendChild(mainMenu);
+    menuContainer.appendChild(mainMenu);
 
     if (_footerMenu) {
       _menuItems.clear();
@@ -48,9 +54,10 @@ function buildMenu(): void {
 
       findMenuItems(_footerMenu, "");
       const footerMenu = buildMenuItems();
-      wrapper.appendChild(footerMenu);
+      menuContainer.appendChild(footerMenu);
     }
 
+    wrapper.appendChild(menuContainer);
     _container.appendChild(wrapper);
   }
 }
@@ -74,10 +81,7 @@ function findMenuItems(parent: HTMLElement, parentIdentifier: string): void {
   _menuItemStructure.set(parentIdentifier, menuItems);
 }
 
-function buildMenuItems(): HTMLDivElement {
-  const menu = document.createElement("div");
-  menu.classList.add("pageMenuOverlayMenu");
-
+function buildHeader(): HTMLDivElement {
   const header = document.createElement("div");
   header.classList.add("pageMenuOverlayHeader");
 
@@ -93,8 +97,11 @@ function buildMenuItems(): HTMLDivElement {
 
   headerLink.appendChild(headerText);
   header.appendChild(headerLink);
-  menu.appendChild(header);
 
+  return header;
+}
+
+function buildMenuItems(): HTMLDivElement {
   const group = document.createElement("div");
   group.classList.add("pageMenuOverlayItemGroup");
 
@@ -134,9 +141,7 @@ function buildMenuItems(): HTMLDivElement {
     group.appendChild(menuItem);
   });
 
-  menu.appendChild(group);
-
-  return menu;
+  return group;
 }
 
 function buildSubMenu(subMenu: HTMLDivElement, parentIdentifier: string, depth: number): void {
@@ -161,10 +166,14 @@ function buildSubMenu(subMenu: HTMLDivElement, parentIdentifier: string, depth: 
 
 function showMenu(): void {
   _container.classList.add("open");
+
+  UiScreen.scrollDisable();
 }
 
 function hideMenu(): void {
   _container.classList.remove("open");
+
+  UiScreen.scrollEnable();
 }
 
 export function enable(): void {

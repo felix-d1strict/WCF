@@ -6,10 +6,11 @@
  * @license GNU Lesser General Public License <http://opensource.org/licenses/lgpl-license.php>
  * @module WoltLabSuite/Core/Ui/Page/Menu/Main
  */
-define(["require", "exports"], function (require, exports) {
+define(["require", "exports", "tslib", "../../Screen"], function (require, exports, tslib_1, UiScreen) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.disable = exports.enable = void 0;
+    UiScreen = tslib_1.__importStar(UiScreen);
     const _callbackOpen = (event) => {
         event.preventDefault();
         event.stopPropagation();
@@ -32,16 +33,21 @@ define(["require", "exports"], function (require, exports) {
             });
             const wrapper = document.createElement("div");
             wrapper.classList.add("pageMenuOverlayWrapper");
+            const header = buildHeader();
+            wrapper.appendChild(header);
+            const menuContainer = document.createElement("div");
+            menuContainer.classList.add("pageMenuOverlayMenu");
             findMenuItems(_mainMenu, "");
             const mainMenu = buildMenuItems();
-            wrapper.appendChild(mainMenu);
+            menuContainer.appendChild(mainMenu);
             if (_footerMenu) {
                 _menuItems.clear();
                 _menuItemStructure.clear();
                 findMenuItems(_footerMenu, "");
                 const footerMenu = buildMenuItems();
-                wrapper.appendChild(footerMenu);
+                menuContainer.appendChild(footerMenu);
             }
+            wrapper.appendChild(menuContainer);
             _container.appendChild(wrapper);
         }
     }
@@ -59,9 +65,7 @@ define(["require", "exports"], function (require, exports) {
         });
         _menuItemStructure.set(parentIdentifier, menuItems);
     }
-    function buildMenuItems() {
-        const menu = document.createElement("div");
-        menu.classList.add("pageMenuOverlayMenu");
+    function buildHeader() {
         const header = document.createElement("div");
         header.classList.add("pageMenuOverlayHeader");
         const headerLink = document.createElement("a");
@@ -74,7 +78,9 @@ define(["require", "exports"], function (require, exports) {
         headerText.textContent = "WoltLab Suite";
         headerLink.appendChild(headerText);
         header.appendChild(headerLink);
-        menu.appendChild(header);
+        return header;
+    }
+    function buildMenuItems() {
         const group = document.createElement("div");
         group.classList.add("pageMenuOverlayItemGroup");
         _menuItemStructure.get("").forEach((identifier) => {
@@ -103,8 +109,7 @@ define(["require", "exports"], function (require, exports) {
             }
             group.appendChild(menuItem);
         });
-        menu.appendChild(group);
-        return menu;
+        return group;
     }
     function buildSubMenu(subMenu, parentIdentifier, depth) {
         _menuItemStructure.get(parentIdentifier).forEach((identifier) => {
@@ -123,9 +128,11 @@ define(["require", "exports"], function (require, exports) {
     }
     function showMenu() {
         _container.classList.add("open");
+        UiScreen.scrollDisable();
     }
     function hideMenu() {
         _container.classList.remove("open");
+        UiScreen.scrollEnable();
     }
     function enable() {
         buildMenu();
