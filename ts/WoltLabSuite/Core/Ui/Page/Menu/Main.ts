@@ -9,6 +9,11 @@
 
 import * as UiScreen from "../../Screen";
 
+interface MenuItem {
+  link: HTMLAnchorElement;
+  children: MenuItem[];
+}
+
 const _callbackOpen = (event: Event) => {
   event.preventDefault();
   event.stopPropagation();
@@ -20,8 +25,6 @@ const _footerMenu = document.querySelector(
   '.box[data-box-identifier="com.woltlab.wcf.FooterMenu"] .boxMenu',
 ) as HTMLOListElement | null;
 const _mainMenu = document.querySelector(".mainMenu .boxMenu") as HTMLOListElement;
-const _menuItems = new Map<string, HTMLAnchorElement>();
-const _menuItemStructure = new Map<string, string[]>();
 
 function buildMenu(): void {
   if (!_container.classList.contains("pageMenuOverlayContainer")) {
@@ -44,16 +47,13 @@ function buildMenu(): void {
     const menuContainer = document.createElement("div");
     menuContainer.classList.add("pageMenuOverlayMenu");
 
-    findMenuItems(_mainMenu, "");
-    const mainMenu = buildMenuItems();
+    const mainMenuItems = findMenuItems(_mainMenu);
+    const mainMenu = buildMenuItems(mainMenuItems);
     menuContainer.appendChild(mainMenu);
 
     if (_footerMenu) {
-      _menuItems.clear();
-      _menuItemStructure.clear();
-
-      findMenuItems(_footerMenu, "");
-      const footerMenu = buildMenuItems();
+      const footerMenuItems = findMenuItems(_footerMenu);
+      const footerMenu = buildMenuItems(footerMenuItems);
       menuContainer.appendChild(footerMenu);
     }
 
@@ -62,23 +62,22 @@ function buildMenu(): void {
   }
 }
 
-function findMenuItems(parent: HTMLElement, parentIdentifier: string): void {
-  const menuItems: string[] = [];
+function findMenuItems(parent: HTMLElement): MenuItem[] {
+  const menuItems: MenuItem[] = [];
 
   Array.from(parent.children).forEach((child: HTMLLIElement) => {
-    const identifier = child.dataset.identifier!;
     const link = child.querySelector(".boxMenuLink") as HTMLAnchorElement;
 
-    _menuItems.set(identifier, link);
-    menuItems.push(identifier);
-
+    const children: MenuItem[] = [];
     if (child.classList.contains("boxMenuHasChildren")) {
       const ol = child.querySelector("ol") as HTMLOListElement;
-      findMenuItems(ol, identifier);
+      findMenuItems(ol);
     }
+
+    menuItems.push({ link, children });
   });
 
-  _menuItemStructure.set(parentIdentifier, menuItems);
+  return menuItems;
 }
 
 function buildHeader(): HTMLDivElement {
@@ -102,24 +101,22 @@ function buildHeader(): HTMLDivElement {
   return header;
 }
 
-function buildMenuItems(): HTMLDivElement {
+function buildMenuItems(menuItems: MenuItem[]): HTMLDivElement {
   const group = document.createElement("div");
   group.classList.add("pageMenuOverlayItemGroup");
 
-  _menuItemStructure.get("")!.forEach((identifier) => {
-    const item = _menuItems.get(identifier)!;
-
+  menuItems.forEach((item) => {
     const menuItem = document.createElement("div");
     menuItem.classList.add("pageMenuOverlayItem");
 
     const link = document.createElement("a");
     link.classList.add("pageMenuOverlayItemLink");
-    link.dataset.identifier = identifier;
-    link.href = item.href;
-    link.textContent = item.textContent;
+    link.dataset.identifier = item.link.dataset.identifier;
+    link.href = item.link.href;
+    link.textContent = item.link.textContent;
     menuItem.appendChild(link);
 
-    if (_menuItemStructure.has(identifier)) {
+    if (item.children.length > 0) {
       const moreLink = document.createElement("a");
       moreLink.classList.add("pageMenuOverlayItemLinkMore");
       moreLink.href = "#";
@@ -134,7 +131,7 @@ function buildMenuItems(): HTMLDivElement {
       const subMenu = document.createElement("div");
       subMenu.classList.add("pageMenuOverlaySubMenu");
 
-      buildSubMenu(subMenu, identifier, 2);
+      buildSubMenu(subMenu, item.children, 2);
 
       menuItem.appendChild(subMenu);
     }
@@ -145,22 +142,20 @@ function buildMenuItems(): HTMLDivElement {
   return group;
 }
 
-function buildSubMenu(subMenu: HTMLDivElement, parentIdentifier: string, depth: number): void {
-  _menuItemStructure.get(parentIdentifier)!.forEach((identifier: string) => {
+function buildSubMenu(subMenu: HTMLDivElement, menuItems: MenuItem[], depth: number): void {
+  menuItems.forEach((item) => {
     const displayDepth = Math.min(depth, 3);
 
     const menuItem = document.createElement("a");
     menuItem.classList.add("pageMenuOverlaySubMenuItem", `pageMenuOverlaySubMenuDepth${displayDepth}`);
-    menuItem.dataset.identifier = identifier;
-
-    const link = _menuItems.get(identifier)!;
-    menuItem.href = link.href;
-    menuItem.textContent = link.textContent;
+    menuItem.dataset.identifier = item.link.dataset.identifier;
+    menuItem.href = item.link.href;
+    menuItem.textContent = item.link.textContent;
 
     subMenu.appendChild(menuItem);
 
-    if (_menuItemStructure.has(identifier)) {
-      buildSubMenu(subMenu, identifier, depth + 1);
+    if (item.children.length > 0) {
+      buildSubMenu(subMenu, item.children, depth + 1);
     }
   });
 }

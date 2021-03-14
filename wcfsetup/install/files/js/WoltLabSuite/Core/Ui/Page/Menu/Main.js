@@ -19,8 +19,6 @@ define(["require", "exports", "tslib", "../../Screen"], function (require, expor
     const _container = document.createElement("div");
     const _footerMenu = document.querySelector('.box[data-box-identifier="com.woltlab.wcf.FooterMenu"] .boxMenu');
     const _mainMenu = document.querySelector(".mainMenu .boxMenu");
-    const _menuItems = new Map();
-    const _menuItemStructure = new Map();
     function buildMenu() {
         if (!_container.classList.contains("pageMenuOverlayContainer")) {
             _container.classList.add("pageMenuOverlayContainer");
@@ -37,33 +35,30 @@ define(["require", "exports", "tslib", "../../Screen"], function (require, expor
             wrapper.appendChild(header);
             const menuContainer = document.createElement("div");
             menuContainer.classList.add("pageMenuOverlayMenu");
-            findMenuItems(_mainMenu, "");
-            const mainMenu = buildMenuItems();
+            const mainMenuItems = findMenuItems(_mainMenu);
+            const mainMenu = buildMenuItems(mainMenuItems);
             menuContainer.appendChild(mainMenu);
             if (_footerMenu) {
-                _menuItems.clear();
-                _menuItemStructure.clear();
-                findMenuItems(_footerMenu, "");
-                const footerMenu = buildMenuItems();
+                const footerMenuItems = findMenuItems(_footerMenu);
+                const footerMenu = buildMenuItems(footerMenuItems);
                 menuContainer.appendChild(footerMenu);
             }
             wrapper.appendChild(menuContainer);
             _container.appendChild(wrapper);
         }
     }
-    function findMenuItems(parent, parentIdentifier) {
+    function findMenuItems(parent) {
         const menuItems = [];
         Array.from(parent.children).forEach((child) => {
-            const identifier = child.dataset.identifier;
             const link = child.querySelector(".boxMenuLink");
-            _menuItems.set(identifier, link);
-            menuItems.push(identifier);
+            const children = [];
             if (child.classList.contains("boxMenuHasChildren")) {
                 const ol = child.querySelector("ol");
-                findMenuItems(ol, identifier);
+                findMenuItems(ol);
             }
+            menuItems.push({ link, children });
         });
-        _menuItemStructure.set(parentIdentifier, menuItems);
+        return menuItems;
     }
     function buildHeader() {
         const header = document.createElement("div");
@@ -80,20 +75,19 @@ define(["require", "exports", "tslib", "../../Screen"], function (require, expor
         header.appendChild(headerLink);
         return header;
     }
-    function buildMenuItems() {
+    function buildMenuItems(menuItems) {
         const group = document.createElement("div");
         group.classList.add("pageMenuOverlayItemGroup");
-        _menuItemStructure.get("").forEach((identifier) => {
-            const item = _menuItems.get(identifier);
+        menuItems.forEach((item) => {
             const menuItem = document.createElement("div");
             menuItem.classList.add("pageMenuOverlayItem");
             const link = document.createElement("a");
             link.classList.add("pageMenuOverlayItemLink");
-            link.dataset.identifier = identifier;
-            link.href = item.href;
-            link.textContent = item.textContent;
+            link.dataset.identifier = item.link.dataset.identifier;
+            link.href = item.link.href;
+            link.textContent = item.link.textContent;
             menuItem.appendChild(link);
-            if (_menuItemStructure.has(identifier)) {
+            if (item.children.length > 0) {
                 const moreLink = document.createElement("a");
                 moreLink.classList.add("pageMenuOverlayItemLinkMore");
                 moreLink.href = "#";
@@ -104,25 +98,24 @@ define(["require", "exports", "tslib", "../../Screen"], function (require, expor
                 menuItem.appendChild(moreLink);
                 const subMenu = document.createElement("div");
                 subMenu.classList.add("pageMenuOverlaySubMenu");
-                buildSubMenu(subMenu, identifier, 2);
+                buildSubMenu(subMenu, item.children, 2);
                 menuItem.appendChild(subMenu);
             }
             group.appendChild(menuItem);
         });
         return group;
     }
-    function buildSubMenu(subMenu, parentIdentifier, depth) {
-        _menuItemStructure.get(parentIdentifier).forEach((identifier) => {
+    function buildSubMenu(subMenu, menuItems, depth) {
+        menuItems.forEach((item) => {
             const displayDepth = Math.min(depth, 3);
             const menuItem = document.createElement("a");
             menuItem.classList.add("pageMenuOverlaySubMenuItem", `pageMenuOverlaySubMenuDepth${displayDepth}`);
-            menuItem.dataset.identifier = identifier;
-            const link = _menuItems.get(identifier);
-            menuItem.href = link.href;
-            menuItem.textContent = link.textContent;
+            menuItem.dataset.identifier = item.link.dataset.identifier;
+            menuItem.href = item.link.href;
+            menuItem.textContent = item.link.textContent;
             subMenu.appendChild(menuItem);
-            if (_menuItemStructure.has(identifier)) {
-                buildSubMenu(subMenu, identifier, depth + 1);
+            if (item.children.length > 0) {
+                buildSubMenu(subMenu, item.children, depth + 1);
             }
         });
     }
