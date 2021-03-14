@@ -71,11 +71,11 @@ define(["require", "exports", "tslib", "../../Screen"], function (require, expor
         const headerLink = document.createElement("a");
         headerLink.classList.add("pageMenuOverlayHeaderLink");
         headerLink.dataset.type = "home";
-        headerLink.href = "#";
-        headerLink.addEventListener("click", (event) => event.preventDefault());
+        const logoLink = document.querySelector("#pageHeaderLogo a");
+        headerLink.href = logoLink.href;
         const headerText = document.createElement("span");
         headerText.classList.add("pageMenuOverlayHeaderText");
-        headerText.textContent = "WoltLab Suite";
+        headerText.textContent = window.PAGE_TITLE;
         headerLink.appendChild(headerText);
         header.appendChild(headerLink);
         return header;
