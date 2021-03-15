@@ -10,12 +10,11 @@
 import * as Core from "../Core";
 import DomChangeListener from "../Dom/Change/Listener";
 import * as Environment from "../Environment";
-import * as EventHandler from "../Event/Handler";
 import * as UiAlignment from "./Alignment";
 import UiCloseOverlay from "./CloseOverlay";
 import * as UiDropdownReusable from "./Dropdown/Reusable";
 import * as UiPageMenuMain from "./Page/Menu/Main";
-import UiPageMenuUser from "./Page/Menu/User";
+import * as UiPageMenuUser from "./Page/Menu/User";
 import * as UiScreen from "./Screen";
 /*
 interface MainMenuMorePayload {
@@ -30,8 +29,6 @@ let _enabledLGTouchNavigation = false;
 let _enableMobileMenu = false;
 const _knownMessages = new WeakSet<HTMLElement>();
 let _mobileSidebarEnabled = false;
-//let _pageMenuMain: UiPageMenuMain;
-let _pageMenuUser: UiPageMenuUser;
 let _messageGroups: HTMLCollection | null = null;
 const _sidebars: HTMLElement[] = [];
 
@@ -39,7 +36,6 @@ function init(): void {
   _enabled = true;
   initButtonGroupNavigation();
   initMessages();
-  initMobileMenu();
 
   UiCloseOverlay.add("WoltLabSuite/Core/Ui/Mobile", closeAllMenus);
   DomChangeListener.add("WoltLabSuite/Core/Ui/Mobile", () => {
@@ -48,6 +44,7 @@ function init(): void {
   });
 
   UiPageMenuMain.enable();
+  UiPageMenuUser.enable();
 }
 
 function initButtonGroupNavigation(): void {
@@ -121,13 +118,6 @@ function initMessages(): void {
     }
     _knownMessages.add(message);
   });
-}
-
-function initMobileMenu(): void {
-  if (_enableMobileMenu) {
-    //_pageMenuMain = new UiPageMenuMain();
-    _pageMenuUser = new UiPageMenuUser();
-  }
 }
 
 function closeAllMenus(): void {
@@ -334,7 +324,7 @@ export function enable(): void {
   _enabled = true;
   if (_enableMobileMenu) {
     UiPageMenuMain.enable();
-    _pageMenuUser.enable();
+    UiPageMenuUser.enable();
   }
 }
 
@@ -354,7 +344,7 @@ export function disable(): void {
   _enabled = false;
   if (_enableMobileMenu) {
     UiPageMenuMain.disable();
-    _pageMenuUser.disable();
+    UiPageMenuUser.disable();
   }
 }
 

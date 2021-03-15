@@ -18,35 +18,36 @@ define(["require", "exports", "tslib", "../../Screen"], function (require, expor
     };
     const _container = document.createElement("div");
     function buildMenu() {
-        if (!_container.classList.contains("pageMenuOverlayContainer")) {
-            _container.classList.add("pageMenuOverlayContainer");
-            _container.dataset.menu = "main";
-            _container.addEventListener("click", (event) => {
-                if (event.target === _container) {
-                    event.preventDefault();
-                    hideMenu();
-                }
-            });
-            const wrapper = document.createElement("div");
-            wrapper.classList.add("pageMenuOverlayWrapper");
-            const header = buildHeader();
-            wrapper.appendChild(header);
-            const menuContainer = document.createElement("div");
-            menuContainer.classList.add("pageMenuOverlayMenu");
-            const mainBoxMenu = document.querySelector(".mainMenu .boxMenu");
-            const mainMenuItems = findMenuItems(mainBoxMenu);
-            const mainMenu = buildMenuItems(mainMenuItems);
-            menuContainer.appendChild(mainMenu);
-            const footerBoxMenu = document.querySelector('.box[data-box-identifier="com.woltlab.wcf.FooterMenu"] .boxMenu');
-            if (footerBoxMenu) {
-                const footerMenuItems = findMenuItems(footerBoxMenu);
-                const footerMenu = buildMenuItems(footerMenuItems);
-                footerMenu.classList.add("pageMenuOverlayItemGroupBottom");
-                menuContainer.appendChild(footerMenu);
-            }
-            wrapper.appendChild(menuContainer);
-            _container.appendChild(wrapper);
+        if (_container.classList.contains("pageMenuOverlayContainer")) {
+            return;
         }
+        _container.classList.add("pageMenuOverlayContainer");
+        _container.dataset.menu = "main";
+        _container.addEventListener("click", (event) => {
+            if (event.target === _container) {
+                event.preventDefault();
+                hideMenu();
+            }
+        });
+        const wrapper = document.createElement("div");
+        wrapper.classList.add("pageMenuOverlayWrapper");
+        const header = buildHeader();
+        wrapper.appendChild(header);
+        const menuContainer = document.createElement("div");
+        menuContainer.classList.add("pageMenuOverlayMenu");
+        const mainBoxMenu = document.querySelector(".mainMenu .boxMenu");
+        const mainMenuItems = findMenuItems(mainBoxMenu);
+        const mainMenu = buildMenuItems(mainMenuItems);
+        menuContainer.appendChild(mainMenu);
+        const footerBoxMenu = document.querySelector('.box[data-box-identifier="com.woltlab.wcf.FooterMenu"] .boxMenu');
+        if (footerBoxMenu) {
+            const footerMenuItems = findMenuItems(footerBoxMenu);
+            const footerMenu = buildMenuItems(footerMenuItems);
+            footerMenu.classList.add("pageMenuOverlayItemGroupBottom");
+            menuContainer.appendChild(footerMenu);
+        }
+        wrapper.appendChild(menuContainer);
+        _container.appendChild(wrapper);
     }
     function findMenuItems(parent) {
         const menuItems = [];
@@ -121,6 +122,7 @@ define(["require", "exports", "tslib", "../../Screen"], function (require, expor
         });
     }
     function showMenu() {
+        buildMenu();
         _container.classList.add("open");
         UiScreen.scrollDisable();
     }
@@ -129,7 +131,6 @@ define(["require", "exports", "tslib", "../../Screen"], function (require, expor
         UiScreen.scrollEnable();
     }
     function enable() {
-        buildMenu();
         document.querySelector(".mainMenu").addEventListener("click", _callbackOpen);
         document.body.appendChild(_container);
     }

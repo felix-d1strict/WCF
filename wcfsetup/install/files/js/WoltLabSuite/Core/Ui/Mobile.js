@@ -6,7 +6,7 @@
  * @license  GNU Lesser General Public License <http://opensource.org/licenses/lgpl-license.php>
  * @module  WoltLabSuite/Core/Ui/Mobile
  */
-define(["require", "exports", "tslib", "../Core", "../Dom/Change/Listener", "../Environment", "./Alignment", "./CloseOverlay", "./Dropdown/Reusable", "./Page/Menu/Main", "./Page/Menu/User", "./Screen"], function (require, exports, tslib_1, Core, Listener_1, Environment, UiAlignment, CloseOverlay_1, UiDropdownReusable, UiPageMenuMain, User_1, UiScreen) {
+define(["require", "exports", "tslib", "../Core", "../Dom/Change/Listener", "../Environment", "./Alignment", "./CloseOverlay", "./Dropdown/Reusable", "./Page/Menu/Main", "./Page/Menu/User", "./Screen"], function (require, exports, tslib_1, Core, Listener_1, Environment, UiAlignment, CloseOverlay_1, UiDropdownReusable, UiPageMenuMain, UiPageMenuUser, UiScreen) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.removeShadow = exports.rebuildShadow = exports.disableShadow = exports.disable = exports.enableShadow = exports.enable = exports.setup = void 0;
@@ -17,7 +17,7 @@ define(["require", "exports", "tslib", "../Core", "../Dom/Change/Listener", "../
     CloseOverlay_1 = tslib_1.__importDefault(CloseOverlay_1);
     UiDropdownReusable = tslib_1.__importStar(UiDropdownReusable);
     UiPageMenuMain = tslib_1.__importStar(UiPageMenuMain);
-    User_1 = tslib_1.__importDefault(User_1);
+    UiPageMenuUser = tslib_1.__importStar(UiPageMenuUser);
     UiScreen = tslib_1.__importStar(UiScreen);
     /*
     interface MainMenuMorePayload {
@@ -32,21 +32,19 @@ define(["require", "exports", "tslib", "../Core", "../Dom/Change/Listener", "../
     let _enableMobileMenu = false;
     const _knownMessages = new WeakSet();
     let _mobileSidebarEnabled = false;
-    //let _pageMenuMain: UiPageMenuMain;
-    let _pageMenuUser;
     let _messageGroups = null;
     const _sidebars = [];
     function init() {
         _enabled = true;
         initButtonGroupNavigation();
         initMessages();
-        initMobileMenu();
         CloseOverlay_1.default.add("WoltLabSuite/Core/Ui/Mobile", closeAllMenus);
         Listener_1.default.add("WoltLabSuite/Core/Ui/Mobile", () => {
             initButtonGroupNavigation();
             initMessages();
         });
         UiPageMenuMain.enable();
+        UiPageMenuUser.enable();
     }
     function initButtonGroupNavigation() {
         document.querySelectorAll(".buttonGroupNavigation").forEach((navigation) => {
@@ -108,12 +106,6 @@ define(["require", "exports", "tslib", "../Core", "../Dom/Change/Listener", "../
             }
             _knownMessages.add(message);
         });
-    }
-    function initMobileMenu() {
-        if (_enableMobileMenu) {
-            //_pageMenuMain = new UiPageMenuMain();
-            _pageMenuUser = new User_1.default();
-        }
     }
     function closeAllMenus() {
         document.querySelectorAll(".jsMobileButtonGroupNavigation.open, .jsMobileNavigation.open").forEach((menu) => {
@@ -290,7 +282,7 @@ define(["require", "exports", "tslib", "../Core", "../Dom/Change/Listener", "../
         _enabled = true;
         if (_enableMobileMenu) {
             UiPageMenuMain.enable();
-            _pageMenuUser.enable();
+            UiPageMenuUser.enable();
         }
     }
     exports.enable = enable;
@@ -310,7 +302,7 @@ define(["require", "exports", "tslib", "../Core", "../Dom/Change/Listener", "../
         _enabled = false;
         if (_enableMobileMenu) {
             UiPageMenuMain.disable();
-            _pageMenuUser.disable();
+            UiPageMenuUser.disable();
         }
     }
     exports.disable = disable;
