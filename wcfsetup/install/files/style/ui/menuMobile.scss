@@ -94,8 +94,13 @@
 	}
 
 	&.pageMenuOverlayItemGroupBottom {
+		border-top-width: 0;
 		margin-top: auto;
 		padding-top: 60px;
+
+		.pageMenuOverlayItem:first-child {
+			border-top: 1px solid $wcfContentBorderInner;
+		}
 	}
 }
 
