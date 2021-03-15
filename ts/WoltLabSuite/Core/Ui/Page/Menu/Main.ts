@@ -54,6 +54,7 @@ function buildMenu(): void {
     if (footerBoxMenu) {
       const footerMenuItems = findMenuItems(footerBoxMenu);
       const footerMenu = buildMenuItems(footerMenuItems);
+      footerMenu.classList.add("pageMenuOverlayItemGroupBottom");
       menuContainer.appendChild(footerMenu);
     }
 

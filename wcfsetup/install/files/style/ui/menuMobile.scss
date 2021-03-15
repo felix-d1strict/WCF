@@ -57,7 +57,6 @@
 	display: flex;
 	flex: 1 auto;
 	flex-direction: column;
-	justify-content: space-between;
 	overflow: auto;
 	padding-bottom: 20px;
 }
@@ -92,6 +91,11 @@
 	&:not(:first-child) {
 		border-top: 1px solid $wcfContentBorderInner;
 		margin-top: 60px;
+	}
+
+	&.pageMenuOverlayItemGroupBottom {
+		margin-top: auto;
+		padding-top: 60px;
 	}
 }
 

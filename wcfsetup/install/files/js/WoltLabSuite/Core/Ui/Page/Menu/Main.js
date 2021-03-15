@@ -41,6 +41,7 @@ define(["require", "exports", "tslib", "../../Screen"], function (require, expor
             if (footerBoxMenu) {
                 const footerMenuItems = findMenuItems(footerBoxMenu);
                 const footerMenu = buildMenuItems(footerMenuItems);
+                footerMenu.classList.add("pageMenuOverlayItemGroupBottom");
                 menuContainer.appendChild(footerMenu);
             }
             wrapper.appendChild(menuContainer);
