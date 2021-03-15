@@ -17,8 +17,6 @@ define(["require", "exports", "tslib", "../../Screen"], function (require, expor
         showMenu();
     };
     const _container = document.createElement("div");
-    const _footerMenu = document.querySelector('.box[data-box-identifier="com.woltlab.wcf.FooterMenu"] .boxMenu');
-    const _mainMenu = document.querySelector(".mainMenu .boxMenu");
     function buildMenu() {
         if (!_container.classList.contains("pageMenuOverlayContainer")) {
             _container.classList.add("pageMenuOverlayContainer");
@@ -35,11 +33,13 @@ define(["require", "exports", "tslib", "../../Screen"], function (require, expor
             wrapper.appendChild(header);
             const menuContainer = document.createElement("div");
             menuContainer.classList.add("pageMenuOverlayMenu");
-            const mainMenuItems = findMenuItems(_mainMenu);
+            const mainBoxMenu = document.querySelector(".mainMenu .boxMenu");
+            const mainMenuItems = findMenuItems(mainBoxMenu);
             const mainMenu = buildMenuItems(mainMenuItems);
             menuContainer.appendChild(mainMenu);
-            if (_footerMenu) {
-                const footerMenuItems = findMenuItems(_footerMenu);
+            const footerBoxMenu = document.querySelector('.box[data-box-identifier="com.woltlab.wcf.FooterMenu"] .boxMenu');
+            if (footerBoxMenu) {
+                const footerMenuItems = findMenuItems(footerBoxMenu);
                 const footerMenu = buildMenuItems(footerMenuItems);
                 menuContainer.appendChild(footerMenu);
             }

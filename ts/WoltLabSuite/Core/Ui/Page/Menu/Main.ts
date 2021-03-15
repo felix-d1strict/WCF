@@ -21,10 +21,6 @@ const _callbackOpen = (event: Event) => {
   showMenu();
 };
 const _container = document.createElement("div");
-const _footerMenu = document.querySelector(
-  '.box[data-box-identifier="com.woltlab.wcf.FooterMenu"] .boxMenu',
-) as HTMLOListElement | null;
-const _mainMenu = document.querySelector(".mainMenu .boxMenu") as HTMLOListElement;
 
 function buildMenu(): void {
   if (!_container.classList.contains("pageMenuOverlayContainer")) {
@@ -47,12 +43,16 @@ function buildMenu(): void {
     const menuContainer = document.createElement("div");
     menuContainer.classList.add("pageMenuOverlayMenu");
 
-    const mainMenuItems = findMenuItems(_mainMenu);
+    const mainBoxMenu = document.querySelector(".mainMenu .boxMenu") as HTMLOListElement;
+    const mainMenuItems = findMenuItems(mainBoxMenu);
     const mainMenu = buildMenuItems(mainMenuItems);
     menuContainer.appendChild(mainMenu);
 
-    if (_footerMenu) {
-      const footerMenuItems = findMenuItems(_footerMenu);
+    const footerBoxMenu = document.querySelector(
+      '.box[data-box-identifier="com.woltlab.wcf.FooterMenu"] .boxMenu',
+    ) as HTMLOListElement | null;
+    if (footerBoxMenu) {
+      const footerMenuItems = findMenuItems(footerBoxMenu);
       const footerMenu = buildMenuItems(footerMenuItems);
       menuContainer.appendChild(footerMenu);
     }
