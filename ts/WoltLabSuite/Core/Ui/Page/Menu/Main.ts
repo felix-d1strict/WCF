@@ -85,21 +85,16 @@ function findMenuItems(parent: HTMLElement): MenuItem[] {
 
 function buildHeader(): HTMLDivElement {
   const header = document.createElement("div");
-  header.classList.add("pageMenuOverlayHeader");
+  header.classList.add("pageMenuOverlayHeader", "pageMenuOverlayHeaderText");
 
-  const headerLink = document.createElement("a");
-  headerLink.classList.add("pageMenuOverlayHeaderLink");
-  headerLink.dataset.type = "home";
+  const link = document.createElement("a");
+  link.classList.add("pageMenuOverlayHeaderLink");
+  link.textContent = window.PAGE_TITLE;
 
   const logoLink = document.querySelector("#pageHeaderLogo a") as HTMLAnchorElement;
-  headerLink.href = logoLink.href;
+  link.href = logoLink.href;
 
-  const headerText = document.createElement("span");
-  headerText.classList.add("pageMenuOverlayHeaderText");
-  headerText.textContent = window.PAGE_TITLE;
-
-  headerLink.appendChild(headerText);
-  header.appendChild(headerLink);
+  header.appendChild(link);
 
   return header;
 }

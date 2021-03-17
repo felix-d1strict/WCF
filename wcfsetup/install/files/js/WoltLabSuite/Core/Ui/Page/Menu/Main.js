@@ -64,17 +64,13 @@ define(["require", "exports", "tslib", "../../Screen"], function (require, expor
     }
     function buildHeader() {
         const header = document.createElement("div");
-        header.classList.add("pageMenuOverlayHeader");
-        const headerLink = document.createElement("a");
-        headerLink.classList.add("pageMenuOverlayHeaderLink");
-        headerLink.dataset.type = "home";
+        header.classList.add("pageMenuOverlayHeader", "pageMenuOverlayHeaderText");
+        const link = document.createElement("a");
+        link.classList.add("pageMenuOverlayHeaderLink");
+        link.textContent = window.PAGE_TITLE;
         const logoLink = document.querySelector("#pageHeaderLogo a");
-        headerLink.href = logoLink.href;
-        const headerText = document.createElement("span");
-        headerText.classList.add("pageMenuOverlayHeaderText");
-        headerText.textContent = window.PAGE_TITLE;
-        headerLink.appendChild(headerText);
-        header.appendChild(headerLink);
+        link.href = logoLink.href;
+        header.appendChild(link);
         return header;
     }
     function buildMenuItems(menuItems) {

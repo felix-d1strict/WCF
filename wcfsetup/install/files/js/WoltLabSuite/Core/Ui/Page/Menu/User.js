@@ -34,21 +34,32 @@ define(["require", "exports", "tslib", "../../Screen", "../../../User"], functio
         wrapper.classList.add("pageMenuOverlayWrapper");
         const header = buildHeader();
         wrapper.appendChild(header);
-        const menuContainer = document.createElement("div");
-        menuContainer.classList.add("pageMenuOverlayMenu");
-        const mainBoxMenu = document.querySelector(".mainMenu .boxMenu");
-        const mainMenuItems = findMenuItems(mainBoxMenu);
-        const mainMenu = buildMenuItems(mainMenuItems);
-        menuContainer.appendChild(mainMenu);
-        const footerBoxMenu = document.querySelector('.box[data-box-identifier="com.woltlab.wcf.FooterMenu"] .boxMenu');
-        if (footerBoxMenu) {
-            const footerMenuItems = findMenuItems(footerBoxMenu);
-            const footerMenu = buildMenuItems(footerMenuItems);
-            footerMenu.classList.add("pageMenuOverlayItemGroupBottom");
-            menuContainer.appendChild(footerMenu);
-        }
-        wrapper.appendChild(menuContainer);
+        const content = document.createElement("div");
+        content.classList.add("pageMenuOverlayContent");
+        generateContent(content);
+        //content.innerHTML = '<div class="pageMenuOverlayContentEmpty">Keine aktuellen Benachrichtigungen</div>';
+        wrapper.appendChild(content);
+        const footer = buildFooter();
+        wrapper.appendChild(footer);
         _container.appendChild(wrapper);
+    }
+    function generateContent(content) {
+        const source = document.getElementById("notification-data").querySelector("ul");
+        Array.from(source.children).forEach((data) => {
+            const item = document.createElement("div");
+            item.classList.add("pageMenuOverlayContentItem");
+            const avatar = data.querySelector("img").cloneNode();
+            avatar.classList.add("pageMenuOverlayItemImage");
+            item.appendChild(avatar);
+            const text = document.createElement("div");
+            text.classList.add("pageMenuOverlayItemText");
+            text.innerHTML = data.querySelector("h3").innerHTML;
+            item.appendChild(text);
+            const time = data.querySelector("time").cloneNode(true);
+            time.classList.add("pageMenuOverlayItemTime");
+            item.appendChild(time);
+            content.appendChild(item);
+        });
     }
     function findMenuItems(parent) {
         const menuItems = [];
@@ -65,62 +76,69 @@ define(["require", "exports", "tslib", "../../Screen", "../../../User"], functio
     }
     function buildHeader() {
         const header = document.createElement("div");
-        header.classList.add("pageMenuOverlayHeader");
-        const headerLink = document.createElement("a");
-        headerLink.classList.add("pageMenuOverlayHeaderLink");
-        headerLink.dataset.type = "home";
-        const logoLink = document.querySelector("#pageHeaderLogo a");
-        headerLink.href = logoLink.href;
-        const headerText = document.createElement("span");
-        headerText.classList.add("pageMenuOverlayHeaderText");
-        headerText.textContent = User_1.default.username;
-        headerLink.appendChild(headerText);
-        header.appendChild(headerLink);
+        header.classList.add("pageMenuOverlayHeader", "pageMenuOverlayHeaderTabs");
+        const tabMenu = document.createElement("div");
+        tabMenu.classList.add("pageMenuHeaderTabMenu");
+        const tabs = new Map([
+            ["Benachrichtigungen", "fa-bell-o"],
+            ["Moderation", "fa-warning"],
+            ["Konversationen", "fa-comments"],
+            [User_1.default.username, "fa-user"],
+        ]);
+        tabs.forEach((iconName, identifier) => {
+            const tab = document.createElement("a");
+            tab.classList.add("pageMenuHeaderTab");
+            tab.dataset.identifier = identifier;
+            tab.dataset.title = identifier;
+            tab.href = "#";
+            tab.addEventListener("click", (event) => selectTab(event));
+            tab.innerHTML = `<span class="icon icon24 ${iconName}"></span>`;
+            tabMenu.appendChild(tab);
+        });
+        header.appendChild(tabMenu);
+        const headerMenuTitle = document.createElement("div");
+        headerMenuTitle.classList.add("pageMenuHeaderTitle");
+        header.appendChild(headerMenuTitle);
         return header;
     }
-    function buildMenuItems(menuItems) {
-        const group = document.createElement("div");
-        group.classList.add("pageMenuOverlayItemGroup");
-        menuItems.forEach((item) => {
-            const menuItem = document.createElement("div");
-            menuItem.classList.add("pageMenuOverlayItem");
-            const link = document.createElement("a");
-            link.classList.add("pageMenuOverlayItemLink");
-            link.dataset.identifier = item.link.dataset.identifier;
-            link.href = item.link.href;
-            link.textContent = item.link.textContent;
-            menuItem.appendChild(link);
-            if (item.children.length > 0) {
-                const moreLink = document.createElement("a");
-                moreLink.classList.add("pageMenuOverlayItemLinkMore");
-                moreLink.href = "#";
-                moreLink.addEventListener("click", (event) => {
-                    event.preventDefault();
-                    moreLink.classList.toggle("open");
-                });
-                menuItem.appendChild(moreLink);
-                const subMenu = document.createElement("div");
-                subMenu.classList.add("pageMenuOverlaySubMenu");
-                buildSubMenu(subMenu, item.children, 2);
-                menuItem.appendChild(subMenu);
-            }
-            group.appendChild(menuItem);
+    function buildFooter() {
+        const footer = document.createElement("div");
+        footer.classList.add("pageMenuOverlayFooter");
+        const buttons = new Map([
+            ["Gelesen markieren", "fa-check"],
+            ["Alle anzeigen", "fa-list"],
+        ]);
+        buttons.forEach((icon, title) => {
+            const button = document.createElement("a");
+            button.classList.add("pageMenuOverlayFooterButton");
+            button.href = "#";
+            button.addEventListener("click", (event) => event.preventDefault());
+            button.innerHTML = `<span class="icon icon24 ${icon}"></span><span class="pageMenuOverlayFooterButtonText">${title}</span>`;
+            footer.appendChild(button);
         });
-        return group;
+        /*
+        const links = ["Einstellungen", "Mehr"];
+        links.forEach((title) => {
+          const link = document.createElement("a");
+          link.classList.add("pageMenuOverlayFooterLink");
+          link.textContent = title;
+          link.href = "#";
+          link.addEventListener("click", (event) => event.preventDefault());
+      
+          footer.appendChild(link);
+        });
+      */
+        return footer;
     }
-    function buildSubMenu(subMenu, menuItems, depth) {
-        menuItems.forEach((item) => {
-            const displayDepth = Math.min(depth, 3);
-            const menuItem = document.createElement("a");
-            menuItem.classList.add("pageMenuOverlaySubMenuItem", `pageMenuOverlaySubMenuDepth${displayDepth}`);
-            menuItem.dataset.identifier = item.link.dataset.identifier;
-            menuItem.href = item.link.href;
-            menuItem.textContent = item.link.textContent;
-            subMenu.appendChild(menuItem);
-            if (item.children.length > 0) {
-                buildSubMenu(subMenu, item.children, depth + 1);
-            }
-        });
+    function selectTab(event) {
+        var _a;
+        event.preventDefault();
+        const tab = event.currentTarget;
+        const tabMenu = tab.parentElement;
+        (_a = tabMenu.querySelector(".pageMenuHeaderTab.active")) === null || _a === void 0 ? void 0 : _a.classList.remove("active");
+        tab.classList.add("active");
+        const title = tabMenu.parentElement.querySelector(".pageMenuHeaderTitle");
+        title.textContent = tab.dataset.identifier;
     }
     function showMenu() {
         buildMenu();

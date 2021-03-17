@@ -44,26 +44,41 @@ function buildMenu(): void {
   const header = buildHeader();
   wrapper.appendChild(header);
 
-  const menuContainer = document.createElement("div");
-  menuContainer.classList.add("pageMenuOverlayMenu");
+  const content = document.createElement("div");
+  content.classList.add("pageMenuOverlayContent");
+  generateContent(content);
 
-  const mainBoxMenu = document.querySelector(".mainMenu .boxMenu") as HTMLOListElement;
-  const mainMenuItems = findMenuItems(mainBoxMenu);
-  const mainMenu = buildMenuItems(mainMenuItems);
-  menuContainer.appendChild(mainMenu);
+  //content.innerHTML = '<div class="pageMenuOverlayContentEmpty">Keine aktuellen Benachrichtigungen</div>';
 
-  const footerBoxMenu = document.querySelector(
-    '.box[data-box-identifier="com.woltlab.wcf.FooterMenu"] .boxMenu',
-  ) as HTMLOListElement | null;
-  if (footerBoxMenu) {
-    const footerMenuItems = findMenuItems(footerBoxMenu);
-    const footerMenu = buildMenuItems(footerMenuItems);
-    footerMenu.classList.add("pageMenuOverlayItemGroupBottom");
-    menuContainer.appendChild(footerMenu);
-  }
+  wrapper.appendChild(content);
 
-  wrapper.appendChild(menuContainer);
+  const footer = buildFooter();
+  wrapper.appendChild(footer);
+
   _container.appendChild(wrapper);
+}
+
+function generateContent(content: HTMLDivElement): void {
+  const source = document.getElementById("notification-data")!.querySelector("ul")!;
+  Array.from(source.children).forEach((data) => {
+    const item = document.createElement("div");
+    item.classList.add("pageMenuOverlayContentItem");
+
+    const avatar = data.querySelector("img")!.cloneNode() as HTMLImageElement;
+    avatar.classList.add("pageMenuOverlayItemImage");
+    item.appendChild(avatar);
+
+    const text = document.createElement("div");
+    text.classList.add("pageMenuOverlayItemText");
+    text.innerHTML = data.querySelector("h3")!.innerHTML;
+    item.appendChild(text);
+
+    const time = data.querySelector("time")!.cloneNode(true) as HTMLElement;
+    time.classList.add("pageMenuOverlayItemTime");
+    item.appendChild(time);
+
+    content.appendChild(item);
+  });
 }
 
 function findMenuItems(parent: HTMLElement): MenuItem[] {
@@ -86,82 +101,79 @@ function findMenuItems(parent: HTMLElement): MenuItem[] {
 
 function buildHeader(): HTMLDivElement {
   const header = document.createElement("div");
-  header.classList.add("pageMenuOverlayHeader");
+  header.classList.add("pageMenuOverlayHeader", "pageMenuOverlayHeaderTabs");
 
-  const headerLink = document.createElement("a");
-  headerLink.classList.add("pageMenuOverlayHeaderLink");
-  headerLink.dataset.type = "home";
+  const tabMenu = document.createElement("div");
+  tabMenu.classList.add("pageMenuHeaderTabMenu");
 
-  const logoLink = document.querySelector("#pageHeaderLogo a") as HTMLAnchorElement;
-  headerLink.href = logoLink.href;
+  const tabs = new Map<string, string>([
+    ["Benachrichtigungen", "fa-bell-o"],
+    ["Moderation", "fa-warning"],
+    ["Konversationen", "fa-comments"],
+    [User.username, "fa-user"],
+  ]);
+  tabs.forEach((iconName, identifier) => {
+    const tab = document.createElement("a");
+    tab.classList.add("pageMenuHeaderTab");
+    tab.dataset.identifier = identifier;
+    tab.dataset.title = identifier;
+    tab.href = "#";
+    tab.addEventListener("click", (event) => selectTab(event));
+    tab.innerHTML = `<span class="icon icon24 ${iconName}"></span>`;
+    tabMenu.appendChild(tab);
+  });
+  header.appendChild(tabMenu);
 
-  const headerText = document.createElement("span");
-  headerText.classList.add("pageMenuOverlayHeaderText");
-  headerText.textContent = User.username;
-
-  headerLink.appendChild(headerText);
-  header.appendChild(headerLink);
+  const headerMenuTitle = document.createElement("div");
+  headerMenuTitle.classList.add("pageMenuHeaderTitle");
+  header.appendChild(headerMenuTitle);
 
   return header;
 }
 
-function buildMenuItems(menuItems: MenuItem[]): HTMLDivElement {
-  const group = document.createElement("div");
-  group.classList.add("pageMenuOverlayItemGroup");
+function buildFooter(): HTMLDivElement {
+  const footer = document.createElement("div");
+  footer.classList.add("pageMenuOverlayFooter");
 
-  menuItems.forEach((item) => {
-    const menuItem = document.createElement("div");
-    menuItem.classList.add("pageMenuOverlayItem");
-
-    const link = document.createElement("a");
-    link.classList.add("pageMenuOverlayItemLink");
-    link.dataset.identifier = item.link.dataset.identifier;
-    link.href = item.link.href;
-    link.textContent = item.link.textContent;
-    menuItem.appendChild(link);
-
-    if (item.children.length > 0) {
-      const moreLink = document.createElement("a");
-      moreLink.classList.add("pageMenuOverlayItemLinkMore");
-      moreLink.href = "#";
-      moreLink.addEventListener("click", (event) => {
-        event.preventDefault();
-
-        moreLink.classList.toggle("open");
-      });
-
-      menuItem.appendChild(moreLink);
-
-      const subMenu = document.createElement("div");
-      subMenu.classList.add("pageMenuOverlaySubMenu");
-
-      buildSubMenu(subMenu, item.children, 2);
-
-      menuItem.appendChild(subMenu);
-    }
-
-    group.appendChild(menuItem);
+  const buttons = new Map([
+    ["Gelesen markieren", "fa-check"],
+    ["Alle anzeigen", "fa-list"],
+  ]);
+  buttons.forEach((icon, title) => {
+    const button = document.createElement("a");
+    button.classList.add("pageMenuOverlayFooterButton");
+    button.href = "#";
+    button.addEventListener("click", (event) => event.preventDefault());
+    button.innerHTML = `<span class="icon icon24 ${icon}"></span><span class="pageMenuOverlayFooterButtonText">${title}</span>`;
+    footer.appendChild(button);
   });
+  /*
+  const links = ["Einstellungen", "Mehr"];
+  links.forEach((title) => {
+    const link = document.createElement("a");
+    link.classList.add("pageMenuOverlayFooterLink");
+    link.textContent = title;
+    link.href = "#";
+    link.addEventListener("click", (event) => event.preventDefault());
 
-  return group;
+    footer.appendChild(link);
+  });
+*/
+  return footer;
 }
 
-function buildSubMenu(subMenu: HTMLDivElement, menuItems: MenuItem[], depth: number): void {
-  menuItems.forEach((item) => {
-    const displayDepth = Math.min(depth, 3);
+function selectTab(event: Event): void {
+  event.preventDefault();
 
-    const menuItem = document.createElement("a");
-    menuItem.classList.add("pageMenuOverlaySubMenuItem", `pageMenuOverlaySubMenuDepth${displayDepth}`);
-    menuItem.dataset.identifier = item.link.dataset.identifier;
-    menuItem.href = item.link.href;
-    menuItem.textContent = item.link.textContent;
+  const tab = event.currentTarget as HTMLAnchorElement;
 
-    subMenu.appendChild(menuItem);
+  const tabMenu = tab.parentElement!;
+  tabMenu.querySelector(".pageMenuHeaderTab.active")?.classList.remove("active");
 
-    if (item.children.length > 0) {
-      buildSubMenu(subMenu, item.children, depth + 1);
-    }
-  });
+  tab.classList.add("active");
+
+  const title = tabMenu.parentElement!.querySelector(".pageMenuHeaderTitle")!;
+  title.textContent = tab.dataset.identifier!;
 }
 
 function showMenu(): void {
