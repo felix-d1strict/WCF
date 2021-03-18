@@ -6,7 +6,7 @@
  * @license GNU Lesser General Public License <http://opensource.org/licenses/lgpl-license.php>
  * @module WoltLabSuite/Core/Ui/Page/Menu/User
  */
-define(["require", "exports", "tslib", "../../Screen", "../../../User"], function (require, exports, tslib_1, UiScreen, User_1) {
+define(["require", "exports", "tslib", "../../Screen", "../../../User", "./Provider/Notification"], function (require, exports, tslib_1, UiScreen, User_1, Notification_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.disable = exports.enable = void 0;
@@ -43,23 +43,33 @@ define(["require", "exports", "tslib", "../../Screen", "../../../User"], functio
         wrapper.appendChild(footer);
         _container.appendChild(wrapper);
     }
-    function generateContent(content) {
-        const source = document.getElementById("notification-data").querySelector("ul");
+    async function generateContent(content) {
+        const notification = new Notification_1.UiPageMenuProviderNotification();
+        await notification.loadContent();
+        content.innerHTML = "";
+        notification.getContent().forEach((element) => content.appendChild(element));
+        /*
+        const source = document.getElementById("notification-data")!.querySelector("ul")!;
         Array.from(source.children).forEach((data) => {
-            const item = document.createElement("div");
-            item.classList.add("pageMenuOverlayContentItem");
-            const avatar = data.querySelector("img").cloneNode();
-            avatar.classList.add("pageMenuOverlayItemImage");
-            item.appendChild(avatar);
-            const text = document.createElement("div");
-            text.classList.add("pageMenuOverlayItemText");
-            text.innerHTML = data.querySelector("h3").innerHTML;
-            item.appendChild(text);
-            const time = data.querySelector("time").cloneNode(true);
-            time.classList.add("pageMenuOverlayItemTime");
-            item.appendChild(time);
-            content.appendChild(item);
+          const item = document.createElement("div");
+          item.classList.add("pageMenuOverlayContentItem");
+      
+          const avatar = data.querySelector("img")!.cloneNode() as HTMLImageElement;
+          avatar.classList.add("pageMenuOverlayItemImage");
+          item.appendChild(avatar);
+      
+          const text = document.createElement("div");
+          text.classList.add("pageMenuOverlayItemText");
+          text.innerHTML = data.querySelector("h3")!.innerHTML;
+          item.appendChild(text);
+      
+          const time = data.querySelector("time")!.cloneNode(true) as HTMLElement;
+          time.classList.add("pageMenuOverlayItemTime");
+          item.appendChild(time);
+      
+          content.appendChild(item);
         });
+        */
     }
     function findMenuItems(parent) {
         const menuItems = [];

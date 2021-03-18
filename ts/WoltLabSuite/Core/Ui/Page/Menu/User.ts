@@ -9,6 +9,7 @@
 
 import * as UiScreen from "../../Screen";
 import User from "../../../User";
+import { UiPageMenuProviderNotification } from "./Provider/Notification";
 
 interface MenuItem {
   link: HTMLAnchorElement;
@@ -58,7 +59,13 @@ function buildMenu(): void {
   _container.appendChild(wrapper);
 }
 
-function generateContent(content: HTMLDivElement): void {
+async function generateContent(content: HTMLDivElement): Promise<void> {
+  const notification = new UiPageMenuProviderNotification();
+  await notification.loadContent();
+
+  content.innerHTML = "";
+  notification.getContent().forEach((element) => content.appendChild(element));
+  /*
   const source = document.getElementById("notification-data")!.querySelector("ul")!;
   Array.from(source.children).forEach((data) => {
     const item = document.createElement("div");
@@ -79,6 +86,7 @@ function generateContent(content: HTMLDivElement): void {
 
     content.appendChild(item);
   });
+  */
 }
 
 function findMenuItems(parent: HTMLElement): MenuItem[] {

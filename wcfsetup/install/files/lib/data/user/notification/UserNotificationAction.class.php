@@ -4,6 +4,8 @@ namespace wcf\data\user\notification;
 
 use wcf\data\AbstractDatabaseObjectAction;
 use wcf\system\exception\PermissionDeniedException;
+use wcf\system\request\LinkHandler;
+use wcf\system\user\notification\event\IUserNotificationEvent;
 use wcf\system\user\notification\UserNotificationHandler;
 use wcf\system\user\storage\UserStorageHandler;
 use wcf\system\WCF;
@@ -193,14 +195,37 @@ class UserNotificationAction extends AbstractDatabaseObjectAction
     public function getOutstandingNotifications()
     {
         $notifications = UserNotificationHandler::getInstance()->getMixedNotifications();
-        WCF::getTPL()->assign([
-            'notifications' => $notifications,
-        ]);
+        $data = [];
+        foreach ($notifications['notifications'] as $notification) {
+            /** @var IUserNotificationEvent $event */
+            $event = $notification['event'];
+            $notificationID = $notification['notificationID'];
 
-        return [
-            'template' => WCF::getTPL()->fetch('notificationListUserPanel'),
-            'totalCount' => $notifications['notificationCount'],
-        ];
+            $link = '';
+            if ($event->isConfirmed()) {
+                $link = $event->getLink();
+            } else {
+                $link = LinkHandler::getInstance()->getLink('NotificationConfirm', ['id' => $notificationID]);
+            }
+
+            $itemData = [
+                'isConfirmed' => $event->isConfirmed(),
+                'link' => $link,
+                'objectId' => $notificationID,
+                'text' => $event->getMessage(),
+                'time' => $notification['time'],
+            ];
+
+            if (count($event->getAuthors()) > 1) {
+                $itemData['image'] = ['className' => 'fa-users'];
+            } else {
+                $itemData['image'] = ['url' => $event->getAuthor()->getAvatar()->getURL()];
+            }
+
+            $data[] = $itemData;
+        }
+
+        return $data;
     }
 
     /**

@@ -293,6 +293,7 @@
 	grid-template-areas:
 		"image text   text"
 		"image author time";
+	grid-template-columns: min-content 1fr 1fr;
 	padding: 10px;
 	row-gap: 5px;
 
@@ -315,6 +316,7 @@
 .pageMenuOverlayItemTime {
 	color: $wcfContentDimmedText;
 	grid-area: time;
+	justify-self: flex-end;
 
 	@include wcfFontSmall;
 }
