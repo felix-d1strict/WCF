@@ -6,12 +6,13 @@
  * @license GNU Lesser General Public License <http://opensource.org/licenses/lgpl-license.php>
  * @module WoltLabSuite/Core/Ui/Page/Menu/User
  */
-define(["require", "exports", "tslib", "../../Screen", "../../../User", "./Provider/Notification"], function (require, exports, tslib_1, UiScreen, User_1, Notification_1) {
+define(["require", "exports", "tslib", "../../Screen", "../../../User", "./Provider/Notification", "../../../Dom/Change/Listener"], function (require, exports, tslib_1, UiScreen, User_1, Notification_1, Listener_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.disable = exports.enable = void 0;
     UiScreen = tslib_1.__importStar(UiScreen);
     User_1 = tslib_1.__importDefault(User_1);
+    Listener_1 = tslib_1.__importDefault(Listener_1);
     const _callbackOpen = (event) => {
         event.preventDefault();
         event.stopPropagation();
@@ -48,6 +49,7 @@ define(["require", "exports", "tslib", "../../Screen", "../../../User", "./Provi
         await notification.loadContent();
         content.innerHTML = "";
         notification.getContent().forEach((element) => content.appendChild(element));
+        Listener_1.default.trigger();
         /*
         const source = document.getElementById("notification-data")!.querySelector("ul")!;
         Array.from(source.children).forEach((data) => {

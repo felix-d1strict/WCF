@@ -18,6 +18,9 @@ export class UiPageMenuProviderItem {
   private render(): HTMLElement {
     const item = document.createElement("div");
     item.classList.add("pageMenuOverlayContentItem");
+    if (!this.data.isConfirmed) {
+      item.classList.add("pageMenuOverlayContentItemOutstanding");
+    }
 
     const image = this.renderImage();
     image.classList.add("pageMenuOverlayItemImage");

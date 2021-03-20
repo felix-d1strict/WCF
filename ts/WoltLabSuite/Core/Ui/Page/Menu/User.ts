@@ -10,6 +10,7 @@
 import * as UiScreen from "../../Screen";
 import User from "../../../User";
 import { UiPageMenuProviderNotification } from "./Provider/Notification";
+import DomChangeListener from "../../../Dom/Change/Listener";
 
 interface MenuItem {
   link: HTMLAnchorElement;
@@ -65,6 +66,8 @@ async function generateContent(content: HTMLDivElement): Promise<void> {
 
   content.innerHTML = "";
   notification.getContent().forEach((element) => content.appendChild(element));
+
+  DomChangeListener.trigger();
   /*
   const source = document.getElementById("notification-data")!.querySelector("ul")!;
   Array.from(source.children).forEach((data) => {
