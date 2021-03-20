@@ -96,6 +96,10 @@ function buildHeader(): HTMLDivElement {
   headerMenuTitle.classList.add("pageMenuHeaderTitle");
   header.appendChild(headerMenuTitle);
 
+  const options = document.createElement("span");
+  options.classList.add("icon", "icon24", "fa-ellipsis-h", "pageMenuHeaderOptions");
+  header.appendChild(options);
+
   return header;
 }
 

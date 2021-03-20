@@ -31,9 +31,13 @@ export class UiPageMenuProviderItem {
     text.innerHTML = this.data.text;
     item.appendChild(text);
 
+    const marker = document.createElement("div");
+    marker.classList.add("pageMenuOverlayItemMarker");
+    item.appendChild(marker);
+
     const date = new Date(this.data.time * 1_000);
     const time = getTimeElement(date);
-    time.classList.add("pageMenuOverlayItemTime");
+    time.classList.add("pageMenuOverlayItemMeta");
     item.appendChild(time);
 
     return item;

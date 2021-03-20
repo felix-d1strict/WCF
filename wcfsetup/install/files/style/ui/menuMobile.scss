@@ -12,12 +12,12 @@
 
 	&[data-menu="main"] {
 		.pageMenuOverlayWrapper {
-			margin-right: 50px;
+			margin-right: 40px;
 			transform: translateX(-100%);
 
 			&::after {
 				box-shadow: inset 7px 0 10px -7px rgba(0, 0, 0, 0.6);
-				right: -50px;
+				right: -40px;
 			}
 		}
 	}
@@ -26,12 +26,12 @@
 		flex-direction: row-reverse;
 
 		.pageMenuOverlayWrapper {
-			margin-left: 50px;
+			margin-left: 40px;
 			transform: translateX(100%);
 
 			&::after {
 				box-shadow: inset -7px 0 10px -7px rgba(0, 0, 0, 0.6);
-				left: -50px;
+				left: -40px;
 			}
 		}
 	}
@@ -63,24 +63,29 @@
 		pointer-events: none;
 		position: absolute;
 		top: 0;
-		width: 50px;
+		width: 40px;
 	}
-}
-
-.pageMenuOverlayHeader {
-	background-color: $wcfSidebarBackground;
-	border-bottom: 1px solid $wcfContentBorderInner;
-	color: $wcfSidebarHeadlineText;
 }
 
 .pageMenuOverlayContainer[data-menu="main"] .pageMenuOverlayHeader {
 	align-items: flex-end;
+	border-bottom: 1px solid $wcfContentBorderInner;
 	display: flex;
 	flex: 0 0 80px;
 }
 
+.pageMenuOverlayContainer[data-menu="user"] .pageMenuOverlayHeader {
+	column-gap: 10px;
+	display: grid;
+	grid-template-areas:
+		"tabs  tabs"
+		"title options";
+	grid-template-columns: 1fr min-content;
+}
+
 .pageMenuOverlayHeaderLink {
-	color: inherit;
+	background-color: $wcfSidebarBackground;
+	color: $wcfSidebarHeadlineText;
 	flex: 0 0 100%;
 	overflow: hidden;
 	padding: 10px 20px;
@@ -103,6 +108,7 @@
 	flex: 0 0 100%;
 	grid-auto-columns: 1fr;
 	grid-auto-flow: column;
+	grid-area: tabs;
 	height: 56px;
 }
 
@@ -136,19 +142,27 @@
 }
 
 .pageMenuHeaderTitle {
-	align-items: center;
-	background-color: $wcfContentBackground;
-	border-bottom-color: $wcfContentBackground;
-	color: $wcfContentDimmedText;
-	display: flex;
-	height: 30px;
-	justify-content: center;
+	align-self: center;
+	grid-area: title;
 	overflow: hidden;
-	padding: 0 10px;
+	padding: 10px;
 	text-overflow: ellipsis;
 	white-space: nowrap;
 
-	@include wcfFontSmall;
+	@include wcfFontHeadline;
+
+	font-weight: 600;
+}
+
+.pageMenuHeaderOptions {
+	align-self: center;
+	align-items: center;
+	color: $wcfContentDimmedText;
+	display: flex;
+	height: 32px;
+	justify-content: center;
+	margin-right: 5px;
+	width: 32px;
 }
 
 .pageMenuOverlayMenu {
@@ -291,24 +305,14 @@
 	column-gap: 10px;
 	display: grid;
 	grid-template-areas:
-		"image text   text"
-		"image author time";
-	grid-template-columns: min-content 1fr 1fr;
+		"image text   marker"
+		"image meta marker";
+	grid-template-columns: min-content 1fr min-content;
 	padding: 10px;
 	row-gap: 5px;
 
 	& + .pageMenuOverlayContentItem {
 		border-top: 1px dashed $wcfContentBorderInner;
-	}
-
-	&.pageMenuOverlayContentItemOutstanding .pageMenuOverlayItemTime::before {
-		background-color: rgb(49, 138, 220);
-		border-radius: 50%;
-		content: "";
-		display: inline-block;
-		height: 8px;
-		margin-right: 5px;
-		width: 8px;
 	}
 }
 
@@ -323,320 +327,26 @@
 	grid-area: text;
 }
 
-.pageMenuOverlayItemTime {
-	color: $wcfContentDimmedText;
-	grid-area: time;
-	justify-self: flex-end;
-
-	@include wcfFontSmall;
-}
-
-/*
-	###################
-	### L E G A C Y ###
-	###################
-*/
-
-.menuOverlayMobileContainer {
-	background-color: rgba(0, 0, 0, 0.4);
-	bottom: 0;
+.pageMenuOverlayItemMarker {
+	align-items: center;
 	display: flex;
-	left: 0;
-	position: fixed;
-	right: 0;
-	top: 0;
-	z-index: 320;
-
-	&:not(.open) {
-		display: none;
-	}
-
-	&[data-element-id="pageUserMenuMobile"] {
-		flex-direction: row-reverse;
-	}
-}
-
-/* menu container */
-.menuOverlayMobile {
-	background-color: $wcfHeaderMenuBackground;
-	flex: 1 auto;
-	max-width: 350px;
-	overflow: hidden;
-	position: relative;
-
-	&.androidMenuTouchEnd {
-		display: block;
-		position: fixed;
-		transition: transform 0.24s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-
-		&.pageMainMenuMobile:not(.open) {
-			transform: translateX(-100vw);
-		}
-		&.pageUserMenuMobile:not(.open) {
-			transform: translateX(100vw);
-		}
-
-		@include screen-sm-up {
-			&.pageMainMenuMobile:not(.open) {
-				transform: translateX(-350px);
-			}
-			&.pageUserMenuMobile:not(.open) {
-				transform: translateX(350px);
-			}
-
-			+ .menuOverlayMobileBackdrop {
-				transition: left 0.24s cubic-bezier(0.25, 0.46, 0.45, 0.94),
-					right 0.24s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-			}
-		}
-	}
-
-	> .menuOverlayItemList {
-		// we use `transform: translateX()` for performance reasons
-		transition: transform 0.24s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-
-		/* work-around to avoid setting explicit visibility */
-		visibility: visible;
-	}
-
-	&.allowScroll {
-		.menuOverlayItemList:not(.hidden) {
-			overflow: auto;
-			-webkit-overflow-scrolling: touch;
-		}
-	}
-
-	&:not(.allowScroll) {
-		// block UI while switching between menus
-		&::before {
-			bottom: 0;
-			content: "";
-			left: 0;
-			position: absolute;
-			right: 0;
-			top: 0;
-			z-index: 500;
-		}
-	}
-
-	&.pageMainMenuMobile {
-		left: 0;
-
-		& + .menuOverlayMobileBackdrop {
-			box-shadow: inset 7px 0 10px -7px rgba(0, 0, 0, 0.6);
-		}
-
-		.menuOverlayItemList {
-			left: 0;
-		}
-	}
-
-	&.pageUserMenuMobile {
-		right: 0;
-
-		& + .menuOverlayMobileBackdrop {
-			box-shadow: inset -7px 0 10px -7px rgba(0, 0, 0, 0.6);
-		}
-
-		.menuOverlayItemList {
-			right: 0;
-		}
-	}
-}
-
-.menuOverlayMobileBackdrop {
-	flex: 0 0 50px;
-	position: relative;
+	grid-area: marker;
+	justify-content: center;
+	width: 20px;
 
 	&::before {
-		align-items: center;
-		background-color: $wcfHeaderMenuLinkBackground;
+		background-color: rgb(49, 138, 220);
 		border-radius: 50%;
-		box-shadow: 0 0 10px rgba(0, 0, 0, 0.34);
-		content: $fa-var-times;
-		color: $wcfHeaderMenuLink;
-		display: flex;
-		font-family: FontAwesome;
-		font-size: 18px;
-		height: 40px;
-		justify-content: center;
-		left: 5px;
-		position: absolute;
-		top: 5px;
-		width: 40px;
+		content: "";
+		display: inline-block;
+		height: 12px;
+		width: 12px;
 	}
 }
 
-.menuOverlayItemWrapper {
-	display: flex;
-	justify-content: flex-end;
+.pageMenuOverlayItemMeta {
+	color: $wcfContentDimmedText;
+	grid-area: meta;
 
-	> .menuOverlayItemLink {
-		flex: 1 1 auto;
-	}
-}
-
-.menuOverlayItemList {
-	background-color: $wcfHeaderMenuBackground;
-	height: 100%;
-	list-style-type: none;
-	margin: 0;
-	padding: 5px 0;
-	position: absolute;
-	top: 0;
-	left: -1px;
-	bottom: 0;
-	width: 100%;
-	z-index: 450;
-
-	&:not(.activeList) {
-		display: none;
-	}
-}
-
-.menuOverlayItemSpacer {
-	margin-top: 25px;
-
-	/* avoid successive spacers piling up */
-	& + .menuOverlayItemSpacer {
-		display: none;
-	}
-}
-
-.menuOverlayItem {
-	&:not(:last-child) {
-		margin-bottom: 1px;
-	}
-
-	/* nested item list */
-	> .menuOverlayItemList {
-		margin-left: 100%;
-		z-index: 500;
-	}
-}
-
-.menuOverlayItemLink,
-.menuOverlayTitle,
-.menuOverlayBackLink {
-	color: $wcfHeaderMenuLink;
-	display: block;
-	font-size: 14px;
-	padding: 10px 30px;
-	position: relative;
-}
-
-.menuOverlayItemLink {
-	align-items: center;
-	background-color: $wcfHeaderMenuLinkBackground;
-	display: flex;
-	overflow: hidden;
-	text-overflow: ellipsis;
-	white-space: nowrap;
-
-	.icon::before {
-		color: $wcfHeaderMenuLink;
-	}
-
-	&:hover {
-		color: $wcfHeaderMenuLinkActive;
-	}
-
-	/* wrapper class for links containing an additional badge */
-	&.menuOverlayItemBadge {
-		align-items: center;
-		display: flex;
-		padding-right: 10px;
-
-		/* different padding if there is no additional icon after the link,
-		   ensures proper alignment for links with badges containing a child
-		   item list */
-		&:last-child {
-			/* 55px = 10px padding + 1px margin + icon */
-			/* icon = 2x 10px padding + 16px width */
-			padding-right: 55px;
-		}
-
-		> .menuOverlayItemTitle {
-			flex: 1 1 auto;
-		}
-
-		> .badge {
-			flex: 0 0 auto;
-		}
-	}
-
-	&.menuOverlayItemLinkMore::after {
-		color: $wcfHeaderMenuLink;
-		content: $fa-var-angle-right;
-		display: block;
-		font-family: FontAwesome;
-		font-size: 18px;
-		position: absolute;
-		right: 18px;
-		top: 50%;
-		transform: translateY(-50%);
-	}
-
-	.menuOverlayItemTitle {
-		overflow: hidden;
-		text-overflow: ellipsis;
-	}
-}
-
-/* fix icons in rtl design */
-html[dir="rtl"] .menuOverlayItemLink.menuOverlayItemLinkMore::after {
-	content: $fa-var-angle-left;
-}
-
-.pageUserMenuMobile .menuOverlayItemBadge:last-child {
-	padding-right: 10px !important;
-}
-
-.menuOverlayItemLink.active,
-.menuOverlayItemLinkIcon.active {
-	background-color: $wcfHeaderMenuLinkBackgroundActive;
-	color: $wcfHeaderMenuLinkActive;
-}
-
-.menuOverlayItemLinkIcon.active > .icon::before {
-	color: $wcfHeaderMenuLinkActive;
-}
-
-.menuOverlayTitle {
-	color: rgba($wcfHeaderMenuLink, 0.7);
-	overflow: hidden;
-	text-overflow: ellipsis;
-	white-space: nowrap;
-
-	&:not(:first-child) {
-		margin-top: 10px;
-	}
-}
-
-/* icon link sharing the space with a link or (header only) the logo */
-.menuOverlayItemLinkIcon {
-	background-color: $wcfHeaderMenuLinkBackground;
-	flex: 0 0 auto;
-	margin-left: 1px;
-	padding: 10px;
-
-	/* force explicit dimensions because no each .icon24 is of equal height/width */
-	height: 44px;
-	width: 44px;
-
-	> .icon::before {
-		color: $wcfHeaderMenuLink;
-	}
-}
-
-.menuOverlayBackLink::before {
-	color: rgba($wcfHeaderMenuLink, 0.7);
-	content: $fa-var-angle-left;
-	display: block;
-	font-family: FontAwesome;
-	font-size: 18px;
-	position: absolute;
-	left: 12px;
-	top: 50%;
-	transform: translateY(-50%);
+	@include wcfFontSmall;
 }

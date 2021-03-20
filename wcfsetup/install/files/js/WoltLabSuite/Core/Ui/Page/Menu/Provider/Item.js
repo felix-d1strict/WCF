@@ -28,9 +28,12 @@ define(["require", "exports", "../../../../Date/Util"], function (require, expor
             text.classList.add("pageMenuOverlayItemText");
             text.innerHTML = this.data.text;
             item.appendChild(text);
+            const marker = document.createElement("div");
+            marker.classList.add("pageMenuOverlayItemMarker");
+            item.appendChild(marker);
             const date = new Date(this.data.time * 1000);
             const time = Util_1.getTimeElement(date);
-            time.classList.add("pageMenuOverlayItemTime");
+            time.classList.add("pageMenuOverlayItemMeta");
             item.appendChild(time);
             return item;
         }

@@ -74,6 +74,9 @@ define(["require", "exports", "tslib", "../../Screen", "../../../User", "./Provi
         const headerMenuTitle = document.createElement("div");
         headerMenuTitle.classList.add("pageMenuHeaderTitle");
         header.appendChild(headerMenuTitle);
+        const options = document.createElement("span");
+        options.classList.add("icon", "icon24", "fa-ellipsis-h", "pageMenuHeaderOptions");
+        header.appendChild(options);
         return header;
     }
     function selectTab(event) {
