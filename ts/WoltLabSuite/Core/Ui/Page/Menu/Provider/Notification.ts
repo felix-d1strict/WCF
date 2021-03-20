@@ -42,10 +42,6 @@ export class UiPageMenuProviderNotification extends UiPageMenuProviderAbstract {
 
     return this.notifications.map((item) => item.getElement());
   }
-
-  getFooterButtons(): HTMLElement[] {
-    throw new Error("Method not implemented.");
-  }
 }
 
 interface AjaxResponse {

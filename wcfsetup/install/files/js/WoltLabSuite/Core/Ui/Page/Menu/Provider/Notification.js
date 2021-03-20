@@ -40,9 +40,6 @@ define(["require", "exports", "tslib", "../../../../Ajax", "./Abstract", "./Item
             }
             return this.notifications.map((item) => item.getElement());
         }
-        getFooterButtons() {
-            throw new Error("Method not implemented.");
-        }
     }
     exports.UiPageMenuProviderNotification = UiPageMenuProviderNotification;
 });

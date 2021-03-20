@@ -40,8 +40,6 @@ define(["require", "exports", "tslib", "../../Screen", "../../../User", "./Provi
         generateContent(content);
         //content.innerHTML = '<div class="pageMenuOverlayContentEmpty">Keine aktuellen Benachrichtigungen</div>';
         wrapper.appendChild(content);
-        const footer = buildFooter();
-        wrapper.appendChild(footer);
         _container.appendChild(wrapper);
     }
     async function generateContent(content) {
@@ -50,41 +48,6 @@ define(["require", "exports", "tslib", "../../Screen", "../../../User", "./Provi
         content.innerHTML = "";
         notification.getContent().forEach((element) => content.appendChild(element));
         Listener_1.default.trigger();
-        /*
-        const source = document.getElementById("notification-data")!.querySelector("ul")!;
-        Array.from(source.children).forEach((data) => {
-          const item = document.createElement("div");
-          item.classList.add("pageMenuOverlayContentItem");
-      
-          const avatar = data.querySelector("img")!.cloneNode() as HTMLImageElement;
-          avatar.classList.add("pageMenuOverlayItemImage");
-          item.appendChild(avatar);
-      
-          const text = document.createElement("div");
-          text.classList.add("pageMenuOverlayItemText");
-          text.innerHTML = data.querySelector("h3")!.innerHTML;
-          item.appendChild(text);
-      
-          const time = data.querySelector("time")!.cloneNode(true) as HTMLElement;
-          time.classList.add("pageMenuOverlayItemTime");
-          item.appendChild(time);
-      
-          content.appendChild(item);
-        });
-        */
-    }
-    function findMenuItems(parent) {
-        const menuItems = [];
-        Array.from(parent.children).forEach((child) => {
-            const link = child.querySelector(".boxMenuLink");
-            const children = [];
-            if (child.classList.contains("boxMenuHasChildren")) {
-                const ol = child.querySelector("ol");
-                findMenuItems(ol);
-            }
-            menuItems.push({ link, children });
-        });
-        return menuItems;
     }
     function buildHeader() {
         const header = document.createElement("div");
@@ -112,35 +75,6 @@ define(["require", "exports", "tslib", "../../Screen", "../../../User", "./Provi
         headerMenuTitle.classList.add("pageMenuHeaderTitle");
         header.appendChild(headerMenuTitle);
         return header;
-    }
-    function buildFooter() {
-        const footer = document.createElement("div");
-        footer.classList.add("pageMenuOverlayFooter");
-        const buttons = new Map([
-            ["Gelesen markieren", "fa-check"],
-            ["Alle anzeigen", "fa-list"],
-        ]);
-        buttons.forEach((icon, title) => {
-            const button = document.createElement("a");
-            button.classList.add("pageMenuOverlayFooterButton");
-            button.href = "#";
-            button.addEventListener("click", (event) => event.preventDefault());
-            button.innerHTML = `<span class="icon icon24 ${icon}"></span><span class="pageMenuOverlayFooterButtonText">${title}</span>`;
-            footer.appendChild(button);
-        });
-        /*
-        const links = ["Einstellungen", "Mehr"];
-        links.forEach((title) => {
-          const link = document.createElement("a");
-          link.classList.add("pageMenuOverlayFooterLink");
-          link.textContent = title;
-          link.href = "#";
-          link.addEventListener("click", (event) => event.preventDefault());
-      
-          footer.appendChild(link);
-        });
-      */
-        return footer;
     }
     function selectTab(event) {
         var _a;
