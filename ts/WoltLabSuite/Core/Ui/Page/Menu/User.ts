@@ -123,6 +123,9 @@ function showMenu(): void {
   _container.classList.add("open");
 
   UiScreen.scrollDisable();
+
+  const firstTab = _container.querySelector(".pageMenuHeaderTab") as HTMLElement;
+  firstTab.click();
 }
 
 function hideMenu(): void {

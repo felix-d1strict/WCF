@@ -93,6 +93,8 @@ define(["require", "exports", "tslib", "../../Screen", "../../../User", "./Provi
         buildMenu();
         _container.classList.add("open");
         UiScreen.scrollDisable();
+        const firstTab = _container.querySelector(".pageMenuHeaderTab");
+        firstTab.click();
     }
     function hideMenu() {
         _container.classList.remove("open");
