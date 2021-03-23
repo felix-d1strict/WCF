@@ -550,12 +550,19 @@ class PackageInstallationDispatcher
                 $host = \str_replace(RouteHandler::getProtocol(), '', RouteHandler::getHost());
                 $path = RouteHandler::getPath(['acp']);
 
+                $isTainted = 1;
+                if ($this->getPackage()->package == 'com.woltlab.wcf') {
+                    // com.woltlab.wcf is special, because promptPackageDir() will not be executed.
+                    $isTainted = 0;
+                }
+
                 // insert as application
                 ApplicationEditor::create([
                     'domainName' => $host,
                     'domainPath' => $path,
                     'cookieDomain' => $host,
                     'packageID' => $package->packageID,
+                    'isTainted' => $isTainted,
                 ]);
             }
         }
@@ -1011,10 +1018,13 @@ class PackageInstallationDispatcher
 
                 $domainPath = FileUtil::addLeadingSlash($domainPath);
 
-                // update application path
+                // update application path and untaint application
                 $application = new Application($this->getPackage()->packageID);
                 $applicationEditor = new ApplicationEditor($application);
-                $applicationEditor->update(['domainPath' => $domainPath]);
+                $applicationEditor->update([
+                    'domainPath' => $domainPath,
+                    'isTainted' => 0,
+                ]);
 
                 // create directory and set permissions
                 @\mkdir($packageDir, 0777, true);

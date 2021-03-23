@@ -75,7 +75,7 @@ function createPicker() {
   monthYearContainer.appendChild(_dateMonth);
 
   let months = "";
-  const monthNames = Language.get("__monthsShort");
+  const monthNames = (Language.get("__monthsShort") as any) as string[];
   for (let i = 0; i < 12; i++) {
     months += `<option value="${i}">${monthNames[i]}</option>`;
   }
@@ -106,7 +106,7 @@ function createPicker() {
   item.className = "weekdays";
   _dateGrid.appendChild(item);
 
-  const weekdays = Language.get("__daysShort");
+  const weekdays = (Language.get("__daysShort") as any) as string[];
   for (let i = 0; i < 7; i++) {
     let day = i + _firstDayOfWeek;
     if (day > 6) {
@@ -771,39 +771,39 @@ const DatePicker = {
           const container = document.createElement("div");
           container.className = "inputAddon";
 
-          clearButton = document.createElement("a");
+          const openButton = document.createElement("a");
 
-          clearButton.className = "inputSuffix button jsTooltip";
-          clearButton.href = "#";
-          clearButton.setAttribute("role", "button");
-          clearButton.tabIndex = 0;
-          clearButton.title = Language.get("wcf.date.datePicker");
-          clearButton.setAttribute("aria-label", Language.get("wcf.date.datePicker"));
-          clearButton.setAttribute("aria-haspopup", "true");
-          clearButton.setAttribute("aria-expanded", "false");
-          clearButton.addEventListener("click", open);
-          container.appendChild(clearButton);
+          openButton.className = "inputSuffix button jsTooltip";
+          openButton.href = "#";
+          openButton.setAttribute("role", "button");
+          openButton.tabIndex = 0;
+          openButton.title = Language.get("wcf.date.datePicker");
+          openButton.setAttribute("aria-label", Language.get("wcf.date.datePicker"));
+          openButton.setAttribute("aria-haspopup", "true");
+          openButton.setAttribute("aria-expanded", "false");
+          openButton.addEventListener("click", open);
+          container.appendChild(openButton);
 
           let icon = document.createElement("span");
           icon.className = "icon icon16 fa-calendar";
-          clearButton.appendChild(icon);
+          openButton.appendChild(icon);
 
           element.parentNode!.insertBefore(container, element);
-          container.insertBefore(element, clearButton);
+          container.insertBefore(element, openButton);
 
           if (!disableClear) {
-            const button = document.createElement("a");
-            button.className = "inputSuffix button";
-            button.addEventListener("click", this.clear.bind(this, element));
+            clearButton = document.createElement("a");
+            clearButton.className = "inputSuffix button";
+            clearButton.addEventListener("click", () => this.clear(element));
             if (isEmpty) {
-              button.style.setProperty("visibility", "hidden", "");
+              clearButton.style.setProperty("visibility", "hidden", "");
             }
 
-            container.appendChild(button);
+            container.appendChild(clearButton);
 
             icon = document.createElement("span");
             icon.className = "icon icon16 fa-times";
-            button.appendChild(icon);
+            clearButton.appendChild(icon);
           }
         }
 

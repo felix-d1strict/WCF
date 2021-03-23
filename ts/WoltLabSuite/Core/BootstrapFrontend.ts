@@ -15,6 +15,7 @@ import * as UiUserIgnore from "./Ui/User/Ignore";
 import * as UiPageHeaderMenu from "./Ui/Page/Header/Menu";
 import * as UiPageHeaderSearch from "./Ui/Page/Header/Search";
 import * as UiMessageUserConsent from "./Ui/Message/UserConsent";
+import * as Ajax from "./Ajax";
 
 interface BoostrapOptions {
   backgroundQueue: {
@@ -23,6 +24,7 @@ interface BoostrapOptions {
   };
   enableSearch: boolean;
   enableUserPopover: boolean;
+  executeCronjobs: boolean;
   styleChanger: boolean;
 }
 
@@ -65,6 +67,17 @@ export function setup(options: BoostrapOptions): void {
 
   if (options.enableUserPopover) {
     _initUserPopover();
+  }
+
+  if (options.executeCronjobs) {
+    Ajax.apiOnce({
+      data: {
+        className: "wcf\\data\\cronjob\\CronjobAction",
+        actionName: "executeCronjobs",
+      },
+      failure: () => false,
+      silent: true,
+    });
   }
 
   BackgroundQueue.setUrl(options.backgroundQueue.url);

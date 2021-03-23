@@ -132,6 +132,10 @@ class IndexPage extends AbstractPage
 
         $evaluationExpired = $evaluationPending = [];
         foreach (ApplicationHandler::getInstance()->getApplications() as $application) {
+            if ($application->isTainted) {
+                continue;
+            }
+
             if ($application->getPackage()->package === 'com.woltlab.wcf') {
                 continue;
             }
@@ -166,6 +170,15 @@ class IndexPage extends AbstractPage
             }
         }
 
+        $taintedApplications = [];
+        foreach (ApplicationHandler::getInstance()->getApplications() as $application) {
+            if (!$application->isTainted) {
+                continue;
+            }
+
+            $taintedApplications[$application->getPackage()->packageID] = $application;
+        }
+
         $missingLanguageItemsMTime = 0;
         if (ENABLE_DEBUG_MODE && ENABLE_DEVELOPER_TOOLS) {
             $logList = new DevtoolsMissingLanguageItemList();
@@ -187,6 +200,7 @@ class IndexPage extends AbstractPage
             'usersAwaitingApproval' => $usersAwaitingApproval,
             'evaluationExpired' => $evaluationExpired,
             'evaluationPending' => $evaluationPending,
+            'taintedApplications' => $taintedApplications,
             'missingLanguageItemsMTime' => $missingLanguageItemsMTime,
         ]);
     }

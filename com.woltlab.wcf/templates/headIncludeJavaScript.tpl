@@ -153,6 +153,7 @@ window.addEventListener('pageshow', function(event) {
 			},
 			enableSearch: {if (!OFFLINE || $__wcf->session->getPermission('admin.general.canViewPageDuringOfflineMode')) && (!FORCE_LOGIN || $__wcf->user->userID)}true{else}false{/if},
 			enableUserPopover: {if $__wcf->getSession()->getPermission('user.profile.canViewUserProfile')}true{else}false{/if},
+			executeCronjobs: {if $executeCronjobs}true{else}false{/if},
 			styleChanger: {if $__wcf->getStyleHandler()->showStyleChanger()}true{else}false{/if}
 		});
 		
@@ -226,20 +227,6 @@ window.addEventListener('pageshow', function(event) {
 		{/if}
 		
 		{event name='javascriptInit'}
-		
-		{if $executeCronjobs}
-			new WCF.Action.Proxy({
-				autoSend: true,
-				data: {
-					className: 'wcf\\data\\cronjob\\CronjobAction',
-					actionName: 'executeCronjobs'
-				},
-				showLoadingOverlay: false,
-				failure: function() {
-					return false;
-				}
-			});
-		{/if}
 		
 		{if ENABLE_POLLING && $__wcf->user->userID}
 			require(['WoltLabSuite/Core/Notification/Handler'], function(NotificationHandler) {

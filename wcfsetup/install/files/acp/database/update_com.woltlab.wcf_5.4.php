@@ -20,16 +20,14 @@ use wcf\system\database\table\column\NotNullVarchar255DatabaseTableColumn;
 use wcf\system\database\table\column\ObjectIdDatabaseTableColumn;
 use wcf\system\database\table\column\TextDatabaseTableColumn;
 use wcf\system\database\table\column\VarbinaryDatabaseTableColumn;
+use wcf\system\database\table\column\VarcharDatabaseTableColumn;
 use wcf\system\database\table\DatabaseTable;
-use wcf\system\database\table\DatabaseTableChangeProcessor;
 use wcf\system\database\table\index\DatabaseTableForeignKey;
 use wcf\system\database\table\index\DatabaseTableIndex;
 use wcf\system\database\table\index\DatabaseTablePrimaryIndex;
 use wcf\system\database\table\PartialDatabaseTable;
-use wcf\system\package\plugin\ScriptPackageInstallationPlugin;
-use wcf\system\WCF;
 
-$tables = [
+return [
     DatabaseTable::create('wcf1_email_log_entry')
         ->columns([
             ObjectIdDatabaseTableColumn::create('entryID'),
@@ -222,11 +220,59 @@ $tables = [
         ->columns([
             DefaultFalseBooleanDatabaseTableColumn::create('invertPermissions'),
         ]),
-];
 
-(new DatabaseTableChangeProcessor(
-    /** @var ScriptPackageInstallationPlugin $this */
-    $this->installation->getPackage(),
-    $tables,
-    WCF::getDB()->getEditor()
-))->process();
+    DatabaseTable::create('wcf1_unfurl_url_image')
+        ->columns([
+            ObjectIdDatabaseTableColumn::create('imageID'),
+            TextDatabaseTableColumn::create('imageUrl')
+                ->notNull(),
+            VarcharDatabaseTableColumn::create('imageUrlHash')
+                ->notNull()
+                ->length(40),
+            NotNullInt10DatabaseTableColumn::create('width'),
+            NotNullInt10DatabaseTableColumn::create('height'),
+            VarcharDatabaseTableColumn::create('imageExtension')
+                ->length(4),
+            DefaultFalseBooleanDatabaseTableColumn::create('isStored'),
+        ])
+        ->indices([
+            DatabaseTablePrimaryIndex::create()
+                ->columns(['imageID']),
+            DatabaseTableIndex::create('imageUrlHash')
+                ->type(DatabaseTableIndex::UNIQUE_TYPE)
+                ->columns(['imageUrlHash']),
+        ]),
+
+    DatabaseTable::create('wcf1_unfurl_url')
+        ->columns([
+            ObjectIdDatabaseTableColumn::create('urlID'),
+            TextDatabaseTableColumn::create('url')
+                ->notNull(),
+            VarcharDatabaseTableColumn::create('urlHash')
+                ->notNull()
+                ->length(40),
+            NotNullVarchar255DatabaseTableColumn::create('title')
+                ->defaultValue(''),
+            TextDatabaseTableColumn::create('description'),
+            IntDatabaseTableColumn::create('imageID')
+                ->length(10),
+            NotNullVarchar255DatabaseTableColumn::create('status')
+                ->defaultValue('PENDING'),
+            NotNullInt10DatabaseTableColumn::create('lastFetch')
+                ->defaultValue(0),
+        ])
+        ->indices([
+            DatabaseTablePrimaryIndex::create()
+                ->columns(['urlID']),
+            DatabaseTableIndex::create('urlHash')
+                ->type(DatabaseTableIndex::UNIQUE_TYPE)
+                ->columns(['urlHash']),
+        ])
+        ->foreignKeys([
+            DatabaseTableForeignKey::create()
+                ->columns(['imageID'])
+                ->referencedTable('wcf1_unfurl_url_image')
+                ->referencedColumns(['imageID'])
+                ->onDelete('SET NULL'),
+        ]),
+];

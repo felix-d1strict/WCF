@@ -134,6 +134,8 @@ final class SessionHandler extends SingletonFactory
 
     private const USER_SESSION_LIFETIME = 60 * 86400;
 
+    private const USER_SESSION_LIMIT = 30;
+
     private const CHANGE_USER_AFTER_MULTIFACTOR_KEY = self::class . "\0__changeUserAfterMultifactor__";
 
     private const PENDING_USER_LIFETIME = 15 * 60;
@@ -659,7 +661,7 @@ final class SessionHandler extends SingletonFactory
         $this->legacySession = $statement->fetchSingleObject(LegacySession::class);
 
         if (!$this->legacySession) {
-            $this->createLegacySession();
+            $this->legacySession = $this->createLegacySession();
         }
 
         return true;
@@ -679,13 +681,14 @@ final class SessionHandler extends SingletonFactory
 
         // Create new session.
         $sql = "INSERT INTO wcf" . WCF_N . "_user_session
-                            (sessionID, ipAddress, userAgent, lastActivityTime, sessionVariables)
-                VALUES      (?, ?, ?, ?, ?)";
+                            (sessionID, ipAddress, userAgent, creationTime, lastActivityTime, sessionVariables)
+                VALUES      (?, ?, ?, ?, ?, ?)";
         $statement = WCF::getDB()->prepareStatement($sql);
         $statement->execute([
             $this->sessionID,
             UserUtil::getIpAddress(),
             UserUtil::getUserAgent(),
+            TIME_NOW,
             TIME_NOW,
             \serialize($variables),
         ]);
@@ -700,12 +703,33 @@ final class SessionHandler extends SingletonFactory
         );
 
         // Maintain legacy session table for users online list.
-        $this->createLegacySession();
+        $this->legacySession = null;
+
+        // Try to find an existing spider session. Order by lastActivityTime to maintain a
+        // stable selection in case duplicates exist for some reason.
+        $spiderID = $this->getSpiderID(UserUtil::getUserAgent());
+        if ($spiderID) {
+            $sql = "SELECT      *
+                    FROM        wcf" . WCF_N . "_session
+                    WHERE       spiderID = ?
+                            AND userID IS NULL
+                    ORDER BY    lastActivityTime DESC";
+            $statement = WCF::getDB()->prepareStatement($sql);
+            $statement->execute([$spiderID]);
+            $this->legacySession = $statement->fetchSingleObject(LegacySession::class);
+        }
+
+        if (!$this->legacySession) {
+            $this->legacySession = $this->createLegacySession();
+        }
     }
 
-    private function createLegacySession()
+    private function createLegacySession(): LegacySession
     {
-        $spiderID = $this->getSpiderID(UserUtil::getUserAgent());
+        $spiderID = null;
+        if (!$this->user->userID) {
+            $spiderID = $this->getSpiderID(UserUtil::getUserAgent());
+        }
 
         // save session
         $sessionData = [
@@ -716,13 +740,10 @@ final class SessionHandler extends SingletonFactory
             'lastActivityTime' => TIME_NOW,
             'requestURI' => UserUtil::getRequestURI(),
             'requestMethod' => !empty($_SERVER['REQUEST_METHOD']) ? \substr($_SERVER['REQUEST_METHOD'], 0, 7) : '',
+            'spiderID' => $spiderID,
         ];
 
-        if ($spiderID !== null) {
-            $sessionData['spiderID'] = $spiderID;
-        }
-
-        $this->legacySession = SessionEditor::create($sessionData);
+        return SessionEditor::create($sessionData);
     }
 
     /**
@@ -1013,6 +1034,28 @@ final class SessionHandler extends SingletonFactory
                 $user->userID,
                 $this->sessionID,
             ]);
+
+            // ... delete any user sessions exceeding the limit ...
+            $sql = "SELECT  all_sessions.sessionID
+                    FROM    wcf" . WCF_N . "_user_session all_sessions
+                    LEFT JOIN (
+                        SELECT      sessionID
+                        FROM        wcf" . WCF_N . "_user_session
+                        WHERE       userID = ?
+                        ORDER BY    lastActivityTime DESC
+                        LIMIT       " . self::USER_SESSION_LIMIT . "
+                    ) newest_sessions
+                    ON      newest_sessions.sessionID = all_sessions.sessionID
+                    WHERE   all_sessions.userID = ?
+                        AND newest_sessions.sessionID IS NULL";
+            $statement = WCF::getDB()->prepareStatement($sql);
+            $statement->execute([
+                $user->userID,
+                $user->userID,
+            ]);
+            foreach ($statement->fetchAll(\PDO::FETCH_COLUMN) as $sessionID) {
+                $this->deleteUserSession($sessionID);
+            }
 
             // ... and reload the session with the updated information.
             $hasSession = $this->getExistingSession($this->sessionID);
@@ -1326,20 +1369,19 @@ final class SessionHandler extends SingletonFactory
 
     /**
      * Returns the spider id for given user agent.
-     *
-     * @param string $userAgent
-     * @return  mixed
      */
-    protected function getSpiderID($userAgent)
+    protected function getSpiderID(string $userAgent): ?int
     {
         $spiderList = SpiderCacheBuilder::getInstance()->getData();
         $userAgent = \strtolower($userAgent);
 
         foreach ($spiderList as $spider) {
             if (\strpos($userAgent, $spider->spiderIdentifier) !== false) {
-                return $spider->spiderID;
+                return \intval($spider->spiderID);
             }
         }
+
+        return null;
     }
 
     /**

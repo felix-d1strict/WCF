@@ -3,26 +3,18 @@
 <script data-relocate="true">
 	$(function() {
 		new WCF.Action.Delete('wcf\\data\\label\\LabelAction', '.jsLabelRow');
-		
-		var options = { };
-		{if $pages > 1}
-			options.refreshPage = true;
-			{if $pages == $pageNo}
-				options.updatePageNumber = -1;
-			{/if}
-		{else}
-			options.emptyMessage = '{jslang}wcf.global.noItems{/jslang}';
-		{/if}
-		
-		new WCF.Table.EmptyTableHandler($('#labelTableContainer'), 'jsLabelRow', options);
-		
-		{if $labelGroup && !$labelSearch && !$cssClassName && $items > 1}
-			new WCF.Sortable.List('labelTableContainer', 'wcf\\data\\label\\LabelAction', {@$startIndex}, {
-				items: 'tr',
-				toleranceElement: null
-			}, true);
-		{/if}
 	});
+	
+	{if $labelGroup && !$labelSearch && !$cssClassName && $items > 1}
+		require(['WoltLabSuite/Core/Ui/Sortable/List'], function (UiSortableList) {
+			new UiSortableList({
+				containerId: 'labelTableContainer',
+				className: 'wcf\\data\\label\\LabelAction',
+				isSimpleSorting: true,
+				offset: {@$startIndex},
+			});
+		});
+	{/if}
 </script>
 
 <header class="contentHeader">
@@ -116,7 +108,7 @@
 				</tr>
 			</thead>
 			
-			<tbody{if $labelGroup && !$labelSearch && !$cssClassName && $items > 1} class="sortableList" data-object-id="{@$labelGroup->groupID}"{/if}>
+			<tbody class="jsReloadPageWhenEmpty{if $labelGroup && !$labelSearch && !$cssClassName && $items > 1} sortableList" data-object-id="{@$labelGroup->groupID}{/if}">
 				{foreach from=$objects item=label}
 					<tr class="jsLabelRow{if $labelGroup && !$labelSearch && !$cssClassName && $items > 1} sortableNode" data-object-id="{@$label->labelID}{/if}">
 						<td class="columnIcon">

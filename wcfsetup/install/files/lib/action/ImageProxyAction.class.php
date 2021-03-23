@@ -2,6 +2,7 @@
 
 namespace wcf\action;
 
+use GuzzleHttp\ClientInterface;
 use GuzzleHttp\Exception\TransferException;
 use GuzzleHttp\Psr7\Request;
 use GuzzleHttp\RequestOptions;
@@ -15,12 +16,13 @@ use wcf\util\exception\CryptoException;
 use wcf\util\FileUtil;
 use wcf\util\HeaderUtil;
 use wcf\util\StringUtil;
+use wcf\util\Url;
 
 /**
  * Proxies requests for embedded images.
  *
- * @author  Matthias Schmidt
- * @copyright   2001-2019 WoltLab GmbH
+ * @author  Tim Duesterhus, Matthias Schmidt
+ * @copyright   2001-2021 WoltLab GmbH
  * @license GNU Lesser General Public License <http://opensource.org/licenses/lgpl-license.php>
  * @package WoltLabSuite\Core\Action
  * @since   3.0
@@ -53,6 +55,21 @@ class ImageProxyAction extends AbstractAction
         if (isset($_REQUEST['key'])) {
             $this->key = StringUtil::trim($_REQUEST['key']);
         }
+    }
+
+    /**
+     * Returns the HTTP Client used for downloading images.
+     * @since 5.4
+     */
+    private function getHttpClient(): ClientInterface
+    {
+        return HttpFactory::makeClient([
+            RequestOptions::TIMEOUT => 10,
+            RequestOptions::STREAM => true,
+            RequestOptions::HEADERS => [
+                'user-agent' => HttpFactory::getDefaultUserAgent("Image Proxy"),
+            ],
+        ]);
     }
 
     /**
@@ -94,41 +111,50 @@ class ImageProxyAction extends AbstractAction
 
                 try {
                     // rewrite schemaless URLs to https
-                    $scheme = \parse_url($url, \PHP_URL_SCHEME);
+                    $scheme = Url::parse($url)['scheme'];
                     if (!$scheme) {
                         if (StringUtil::startsWith($url, '//')) {
                             $url = 'https:' . $url;
                         } else {
-                            throw new \DomainException();
+                            throw new \DomainException("Refusing to proxy a schemaless URL that does not start with //");
                         }
                     }
 
+                    if (Url::parse($url)['port']) {
+                        throw new \DomainException("Refusing to proxy non-standard ports.");
+                    }
+
                     // download image
+                    $file = null;
+                    $response = null;
                     try {
-                        $client = HttpFactory::makeClient([
-                            RequestOptions::TIMEOUT => 10,
-                            RequestOptions::STREAM => true,
-                        ]);
                         $request = new Request('GET', $url, [
                             'via' => '1.1 wsc',
                             'accept' => 'image/*',
-                            'range' => 'bytes=0-' . (self::MAX_SIZE - 1),
                         ]);
-                        $response = $client->send($request);
+                        $response = $this->getHttpClient()->send($request);
 
                         $file = new File($tmp);
                         while (!$response->getBody()->eof()) {
                             $file->write($response->getBody()->read(8192));
 
                             if ($response->getBody()->tell() >= self::MAX_SIZE) {
-                                break;
+                                throw new \DomainException(\sprintf(
+                                    'Response body is larger than the accepted maximum size (%d Bytes).',
+                                    self::MAX_SIZE
+                                ));
                             }
                         }
-                        $response->getBody()->close();
                         $file->flush();
-                        $file->close();
                     } catch (TransferException $e) {
                         throw new \DomainException('Failed to request', 0, $e);
+                    } finally {
+                        if ($response && $response->getBody()) {
+                            $response->getBody()->close();
+                        }
+                        if ($file) {
+                            $file->close();
+                        }
                     }
 
                     // check file type

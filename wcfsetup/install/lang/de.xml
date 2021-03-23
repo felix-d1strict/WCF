@@ -1783,6 +1783,8 @@ Die Datenbestände werden sorgfältig gepflegt, aber es ist nicht ausgeschlossen
 		<item name="wcf.acp.option.message_enable_user_consent"><![CDATA[Inhalte von externen Anbietern erst nach Zustimmung anzeigen]]></item>
 		<item name="wcf.acp.option.modification_log_expiration"><![CDATA[Speicherzeit für Änderungen]]></item>
 		<item name="wcf.acp.option.modification_log_expiration.description"><![CDATA[Zeitraum, nachdem alte Änderungen aus dem Änderungsprotokoll entfernt werden [0, um die Entfernung gänzlich zu deaktivieren]]]></item>
+		<item name="wcf.acp.option.internal_hostnames"><![CDATA[Zusätzliche interne Domains]]></item>
+		<item name="wcf.acp.option.internal_hostnames.description"><![CDATA[Die aufgeführten Domains werden, neben den Domains der installierten Apps, als interne Domains angesehen. Der Abgleich erfolgt auf Basis der strikten Übereinstimmung, optional können Subdomains mit einem Platzhalter berücksichtigt werden: <kbd>*.example.com</kbd> umfasst sowohl <kbd>example.com</kbd> als auch Subdomains wie <kbd>foo.example.com</kbd> oder <kbd>www.example.com</kbd>.<br>Bitte nur eine Domain pro Zeile eingeben.]]></item>
 	</category>
 	<category name="wcf.acp.customOption">
 		<item name="wcf.acp.customOption.list"><![CDATA[Eingabefelder]]></item>
@@ -2004,6 +2006,7 @@ Die Datenbestände werden sorgfältig gepflegt, aber es ist nicht ausgeschlossen
 		Unbekannter Fehler.
 	{/if}
 {/implode}]]></item>
+		<item name="wcf.acp.package.application.isTainted"><![CDATA[Die App{if $taintedApplication|isset} <strong>{$taintedApplication->getPackage()->getTitle()}</strong>{/if} ist nicht vollständig installiert. Für eine weitere Verwendung der App ist eine Deinstallation mit anschließender Neuinstallation von Nöten.]]></item>
 	</category>
 	<category name="wcf.acp.page">
 		<item name="wcf.acp.page.add"><![CDATA[Seite hinzufügen]]></item>
@@ -2636,6 +2639,8 @@ Kein Abschnitt darf leer sein und alle Abschnitten dürfen nur folgende Zeichen 
 		<item name="wcf.acp.pip.userProfileMenu.info"><![CDATA[Das <kbd>userProfileMenu</kbd>-Package Installation Plugin installiert neue Menüpunkte für das Benutzerprofilmenü. {if LANGUAGE_USE_INFORMAL_VARIANT}Du kannst{else}Sie können{/if} mehr Informationen in der <a href="https://docs.woltlab.com/package_pip_user-profile-menu.html" class="externalURL">Entwickler-Dokumentation</a> finden.]]></item>
 		<item name="wcf.acp.pip.language.languageItemValue.de.description"><![CDATA[Hilfreiche Code-Fragmente: <kbd>{literal}{if LANGUAGE_USE_INFORMAL_VARIANT}{else}{/if}{/literal}</kbd>, <kbd>„“</kbd>]]></item>
 		<item name="wcf.acp.pip.language.languageItemValue.en.description"><![CDATA[Hilfreiche Code-Fragmente: <kbd>“”</kbd>]]></item>
+		<item name="wcf.acp.pip.option.optionName.error.notLowercase"><![CDATA[Der Optionsname darf keine Großbuchstaben enthalten.]]></item>
+		<item name="wcf.acp.pip.option.optionName.error.pattern"><![CDATA[Der Optionsname darf ausschließlich aus kleinen lateinischen Buchstaben, Ziffern und Unterstrichen bestehen. Das erste und letzte Zeichen muss jeweils ein Buchstabe sein.]]></item>
 	</category>
 	<category name="wcf.acp.reactionType">
 		<item name="wcf.acp.reactionType.delete.confirmMessage"><![CDATA[{if LANGUAGE_USE_INFORMAL_VARIANT}Willst du{else}Wollen Sie{/if} den Reaktions-Typen <span class="confirmationObject">{$reactionType->getTitle()}</span> wirklich löschen?]]></item>
@@ -3203,7 +3208,7 @@ Wenn {if LANGUAGE_USE_INFORMAL_VARIANT}du{else}Sie{/if} unter „Konfiguration �
 		<item name="wcf.acp.user.quickSearch.pendingActivation"><![CDATA[Benutzer die auf Freischaltung warten]]></item>
 		<item name="wcf.acp.user.quickSearch.disabledAvatars"><![CDATA[Gesperrte Avatare]]></item>
 		<item name="wcf.acp.user.quickSearch.disabledSignatures"><![CDATA[Gesperrte Signaturen]]></item>
-		<item name="wcf.acp.user.usersAwaitingApprovalInfo"><![CDATA[<a href="{link controller='UserQuickSearch'}mode=disabled{/link}">{#$usersAwaitingApproval} Benutzer</a> {if $usersAwaitingApproval == 1}wartet auf seine{else}warten auf ihre{/if} Aktivierung.]]></item>
+		<item name="wcf.acp.user.usersAwaitingApprovalInfo"><![CDATA[<a href="{link controller='UserQuickSearch'}mode=pendingActivation{/link}">{#$usersAwaitingApproval} Benutzer</a> {if $usersAwaitingApproval == 1}wartet auf seine{else}warten auf ihre{/if} Aktivierung.]]></item>
 		<item name="wcf.acp.user.search.conditions.state.enabled"><![CDATA[Aktiviert]]></item>
 		<item name="wcf.acp.user.search.conditions.state.disabled"><![CDATA[Nicht aktiviert]]></item>
 		<item name="wcf.acp.user.sendNewPassword.mail.subject"><![CDATA[Neues Kennwort für {if LANGUAGE_USE_INFORMAL_VARIANT}dein{else}Ihr{/if} Benutzerkonto auf der Website: {@PAGE_TITLE|language}]]></item>
@@ -3234,6 +3239,8 @@ aus Sicherheitsgründen erforderlich, dass {if LANGUAGE_USE_INFORMAL_VARIANT}du{
 		<item name="wcf.acp.user.authentication.failure.environment.user"><![CDATA[Benutzer]]></item>
 		<item name="wcf.acp.user.authentication.failure.environment.admin"><![CDATA[Administration]]></item>
 		<item name="wcf.acp.user.authentication.failure.time"><![CDATA[Datum]]></item>
+		<item name="wcf.acp.user.authentication.failure.time.start"><![CDATA[Datum von]]></item>
+		<item name="wcf.acp.user.authentication.failure.time.end"><![CDATA[Datum bis]]></item>
 		<item name="wcf.acp.user.authentication.failure.password"><![CDATA[Ungültiges Kennwort]]></item>
 		<item name="wcf.acp.user.authentication.failure.username"><![CDATA[Unbekannter Benutzername]]></item>
 		<item name="wcf.acp.user.authentication.failure.validationError"><![CDATA[Fehler]]></item>
@@ -4685,7 +4692,7 @@ dann wird diese Anfrage am {$mailbox->getUser()->lastLostPasswordRequestTime+864
 		<item name="wcf.user.changeEmail.needReactivation.mail.subject"><![CDATA[Aktivierung der neuen E-Mail-Adresse auf der Website: {@PAGE_TITLE|language}]]></item>
 		<item name="wcf.user.changeEmail.needReactivation.mail.html.headline"><![CDATA[Hallo {$mailbox->getUser()->username},]]></item>
 		<item name="wcf.user.changeEmail.needReactivation.mail.html.intro"><![CDATA[
-<p>{if LANGUAGE_USE_INFORMAL_VARIANT}du hast deine{else}Sie haben Ihre{/if} E-Mail-Adresse auf der Website: <a href="{link isHtmlEmail=true}{/link}">{PAGE_TITLE|language}</a> geändert. 
+<p>{if LANGUAGE_USE_INFORMAL_VARIANT}du hast deine{else}Sie haben Ihre{/if} E-Mail-Adresse auf der Website: <a href="{link isHtmlEmail=true}{/link}">{PAGE_TITLE|language}</a> geändert.
 Zum Abschließen dieser Änderung {if LANGUAGE_USE_INFORMAL_VARIANT}musst du{else}müssen Sie{/if} einmalig die Gültigkeit der neuen E-Mail-Adresse bestätigen:</p>]]></item>
 		<item name="wcf.user.changeEmail.needReactivation.mail.html.activate"><![CDATA[Neue E-Mail-Adresse aktivieren]]></item>
 		<item name="wcf.user.changeEmail.needReactivation.mail.html.outro"><![CDATA[
@@ -4824,7 +4831,7 @@ sich{/if} nicht bei uns registriert {if LANGUAGE_USE_INFORMAL_VARIANT}hast{else}
 		<item name="wcf.user.register.needActivation.mail.subject"><![CDATA[Aktivierung der Registrierung auf der Website: {@PAGE_TITLE|language}]]></item>
 		<item name="wcf.user.register.needActivation.mail.html.headline"><![CDATA[Hallo {$mailbox->getUser()->username},]]></item>
 		<item name="wcf.user.register.needActivation.mail.html.intro"><![CDATA[
-<p>vielen Dank für {if LANGUAGE_USE_INFORMAL_VARIANT}deine{else}Ihre{/if} Registrierung auf der Website: <a href="{link isHtmlEmail=true}{/link}">{PAGE_TITLE|language}</a>. Bevor {if LANGUAGE_USE_INFORMAL_VARIANT}du dein{else}Sie Ihr{/if} 
+<p>vielen Dank für {if LANGUAGE_USE_INFORMAL_VARIANT}deine{else}Ihre{/if} Registrierung auf der Website: <a href="{link isHtmlEmail=true}{/link}">{PAGE_TITLE|language}</a>. Bevor {if LANGUAGE_USE_INFORMAL_VARIANT}du dein{else}Sie Ihr{/if}
 Benutzerkonto vollständig verwenden {if LANGUAGE_USE_INFORMAL_VARIANT}kannst{else}können{/if}, ist es notwendig, dass {if LANGUAGE_USE_INFORMAL_VARIANT}du{else}Sie{/if} einmalig die Gültigkeit {if LANGUAGE_USE_INFORMAL_VARIANT}deiner{else}Ihrer{/if} E-Mail-Adresse {if LANGUAGE_USE_INFORMAL_VARIANT}bestätigst{else}bestätigen{/if}:</p>]]></item>
 		<item name="wcf.user.register.needActivation.mail.html.activate"><![CDATA[Benutzerkonto aktivieren]]></item>
 		<item name="wcf.user.register.needActivation.mail.html.outro"><![CDATA[
@@ -4836,7 +4843,7 @@ dann {if LANGUAGE_USE_INFORMAL_VARIANT}kannst du{else}können Sie{/if} diese E-M
 
 vielen Dank für {if LANGUAGE_USE_INFORMAL_VARIANT}deine{else}Ihre{/if} Registrierung auf der Website: {@PAGE_TITLE|language} [URL:{link isEmail=true}{/link}].
 Bevor {if LANGUAGE_USE_INFORMAL_VARIANT}du dein{else}Sie Ihr{/if} Benutzerkonto vollständig verwenden {if LANGUAGE_USE_INFORMAL_VARIANT}kannst{else}können{/if}, ist es notwendig,
-dass {if LANGUAGE_USE_INFORMAL_VARIANT}du{else}Sie{/if} einmalig durch Klicken des folgenden Links die Gültigkeit {if LANGUAGE_USE_INFORMAL_VARIANT}deiner{else}Ihrer{/if} 
+dass {if LANGUAGE_USE_INFORMAL_VARIANT}du{else}Sie{/if} einmalig durch Klicken des folgenden Links die Gültigkeit {if LANGUAGE_USE_INFORMAL_VARIANT}deiner{else}Ihrer{/if}
 E-Mail-Adresse {if LANGUAGE_USE_INFORMAL_VARIANT}bestätigst{else}bestätigen{/if}:
 
     {link controller='RegisterActivation' isEmail=true}u={@$mailbox->getUser()->userID}&a={@$mailbox->getUser()->emailConfirmed}{/link} {* this line ends with a space *}
@@ -4860,10 +4867,10 @@ Sobald {if LANGUAGE_USE_INFORMAL_VARIANT}dein{else}Ihr{/if} Benutzerkonto freige
 		<item name="wcf.user.register.error.disabled"><![CDATA[Die Registrierung ist momentan deaktiviert.]]></item>
 		<!-- Administrator Notification -->
 		<item name="wcf.user.register.notification.mail"><![CDATA[Hallo Administrator,
-		
-auf der Website {@PAGE_TITLE|language} erfolgte eine neue Benutzeranmeldung durch: {@$user->username} 
 
-Die E-Mail-Adresse des neuen Benutzers lautet: {@$user->email} 
+auf der Website {@PAGE_TITLE|language} erfolgte eine neue Benutzeranmeldung durch: {@$user->username}
+
+Die E-Mail-Adresse des neuen Benutzers lautet: {@$user->email}
 
 {if LANGUAGE_USE_INFORMAL_VARIANT}Du erreichst{else}Sie erreichen{/if} das Benutzerprofil des neuen Benutzers, indem {if LANGUAGE_USE_INFORMAL_VARIANT}du{else}Sie{/if} folgenden Link {if LANGUAGE_USE_INFORMAL_VARIANT}aufrufst{else}aufrufen{/if}:
 {link controller='User' object=$user isEmail=true}{/link} ]]></item>
@@ -5068,7 +5075,7 @@ Die E-Mail-Adresse des neuen Benutzers lautet: {@$user->email}
 		<item name="wcf.user.usersOnline.detail"><![CDATA[
 {if $usersOnlineList->stats[members] > 0}
 	{#$usersOnlineList->stats[members]} Mitglied{if $usersOnlineList->stats[members] != 1}er{/if}
-{/if} 
+{/if}
 {if $usersOnlineList->stats[invisible] > 0}
 	(davon {#$usersOnlineList->stats[invisible]} unsichtbar)
 {/if}
@@ -5266,7 +5273,7 @@ Die E-Mail-Adresse des neuen Benutzers lautet: {@$user->email}
 		<item name="wcf.user.notification.mail.subject"><![CDATA[Neue Benachrichtigung: {@$title}]]></item>
 		<item name="wcf.user.notification.mail.plaintext.intro"><![CDATA[Hallo {@$mailbox->getUser()->username},]]></item>
 		<item name="wcf.user.notification.mail.plaintext.outro"><![CDATA[Diese E-Mail ist eine automatische Benachrichtigung. BITTE {if LANGUAGE_USE_INFORMAL_VARIANT}ANTWORTE{else}ANTWORTEN SIE{/if} NICHT AUF DIESE E-MAIL.
-		
+
 {if LANGUAGE_USE_INFORMAL_VARIANT}Besuche deine{else}Besuchen Sie Ihre{/if} Benachrichtigungseinstellungen [URL:{link controller='NotificationSettings' isEmail=true}{/link}], um die
 Benachrichtigungen auf {@PAGE_TITLE|language} [URL:{link isEmail=true}{/link}] nach {if LANGUAGE_USE_INFORMAL_VARIANT}deinen{else}Ihren{/if} Wünschen zu konfigurieren.
 

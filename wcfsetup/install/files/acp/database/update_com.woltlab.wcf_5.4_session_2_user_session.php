@@ -16,12 +16,10 @@ use wcf\system\database\table\column\NotNullInt10DatabaseTableColumn;
 use wcf\system\database\table\column\NotNullVarchar255DatabaseTableColumn;
 use wcf\system\database\table\column\VarcharDatabaseTableColumn;
 use wcf\system\database\table\DatabaseTable;
-use wcf\system\database\table\DatabaseTableChangeProcessor;
 use wcf\system\database\table\index\DatabaseTableForeignKey;
 use wcf\system\database\table\index\DatabaseTableIndex;
-use wcf\system\WCF;
 
-$tables = [
+return [
     DatabaseTable::create('wcf1_user_session')
         ->columns([
             CharDatabaseTableColumn::create('sessionID')
@@ -34,6 +32,7 @@ $tables = [
             VarcharDatabaseTableColumn::create('ipAddress')
                 ->length(39)
                 ->defaultValue(''),
+            NotNullInt10DatabaseTableColumn::create('creationTime'),
             NotNullInt10DatabaseTableColumn::create('lastActivityTime')
                 ->defaultValue(0),
             MediumblobDatabaseTableColumn::create('sessionVariables'),
@@ -55,11 +54,3 @@ $tables = [
                 ->onDelete('CASCADE'),
         ]),
 ];
-
-(new DatabaseTableChangeProcessor(
-/** @var ScriptPackageInstallationPlugin $this */
-    $this->installation->getPackage(),
-    $tables,
-    WCF::getDB()->getEditor()
-)
-)->process();

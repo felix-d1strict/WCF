@@ -6,7 +6,7 @@
  * @license  GNU Lesser General Public License <http://opensource.org/licenses/lgpl-license.php>
  * @module  WoltLabSuite/Core/BootstrapFrontend
  */
-define(["require", "exports", "tslib", "./BackgroundQueue", "./Bootstrap", "./Controller/Style/Changer", "./Controller/Popover", "./Ui/User/Ignore", "./Ui/Page/Header/Menu", "./Ui/Page/Header/Search", "./Ui/Message/UserConsent"], function (require, exports, tslib_1, BackgroundQueue, Bootstrap, ControllerStyleChanger, ControllerPopover, UiUserIgnore, UiPageHeaderMenu, UiPageHeaderSearch, UiMessageUserConsent) {
+define(["require", "exports", "tslib", "./BackgroundQueue", "./Bootstrap", "./Controller/Style/Changer", "./Controller/Popover", "./Ui/User/Ignore", "./Ui/Page/Header/Menu", "./Ui/Page/Header/Search", "./Ui/Message/UserConsent", "./Ajax"], function (require, exports, tslib_1, BackgroundQueue, Bootstrap, ControllerStyleChanger, ControllerPopover, UiUserIgnore, UiPageHeaderMenu, UiPageHeaderSearch, UiMessageUserConsent, Ajax) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.setup = void 0;
@@ -18,6 +18,7 @@ define(["require", "exports", "tslib", "./BackgroundQueue", "./Bootstrap", "./Co
     UiPageHeaderMenu = tslib_1.__importStar(UiPageHeaderMenu);
     UiPageHeaderSearch = tslib_1.__importStar(UiPageHeaderSearch);
     UiMessageUserConsent = tslib_1.__importStar(UiMessageUserConsent);
+    Ajax = tslib_1.__importStar(Ajax);
     /**
      * Initializes user profile popover.
      */
@@ -51,6 +52,16 @@ define(["require", "exports", "tslib", "./BackgroundQueue", "./Bootstrap", "./Co
         }
         if (options.enableUserPopover) {
             _initUserPopover();
+        }
+        if (options.executeCronjobs) {
+            Ajax.apiOnce({
+                data: {
+                    className: "wcf\\data\\cronjob\\CronjobAction",
+                    actionName: "executeCronjobs",
+                },
+                failure: () => false,
+                silent: true,
+            });
         }
         BackgroundQueue.setUrl(options.backgroundQueue.url);
         if (Math.random() < 0.1 || options.backgroundQueue.force) {

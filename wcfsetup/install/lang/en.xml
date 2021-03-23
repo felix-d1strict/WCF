@@ -1767,6 +1767,8 @@ The database is carefully maintained, but there will be always be a margin of er
 		<item name="wcf.acp.option.message_enable_user_consent"><![CDATA[Prompt users before displaying content from external sources]]></item>
 		<item name="wcf.acp.option.modification_log_expiration"><![CDATA[Storage Time for Modification Logs]]></item>
 		<item name="wcf.acp.option.modification_log_expiration.description"><![CDATA[Modification logs will be deleted after the entered amount of days. To disable deleting old modification logs, enter “0”.]]></item>
+		<item name="wcf.acp.option.internal_hostnames"><![CDATA[Additional Internal Domains]]></item>
+		<item name="wcf.acp.option.internal_hostnames.description"><![CDATA[The listed domains will be considered as internal domains in addition to the domains in use by installed apps. Hostnames are exact matches only, a leading wildcard can be used to exclude an entire domain: <kbd>*.example.com</kbd> matches <kbd>example.com</kbd> and subdomains such as <kbd>foo.example.com</kbd> or <kbd>www.example.com</kbd>.<br>Enter one domain per line only.]]></item>
 	</category>
 	<category name="wcf.acp.customOption">
 		<item name="wcf.acp.customOption.list"><![CDATA[Option Fields]]></item>
@@ -1988,6 +1990,7 @@ If you have <strong>already bought the licenses for the listed apps</strong>, th
 		Unknown error.
 	{/if}
 {/implode}]]></item>
+		<item name="wcf.acp.package.application.isTainted"><![CDATA[The app{if $taintedApplication|isset} <strong>{$taintedApplication->getPackage()->getTitle()}</strong>{/if} is not fully installed. You need to uninstall and then reinstall the app to be able to use it.]]></item>
 	</category>
 	<category name="wcf.acp.paidSubscription">
 		<item name="wcf.acp.paidSubscription.list"><![CDATA[Paid Subscriptions]]></item>
@@ -2564,6 +2567,8 @@ If you have <strong>already bought the licenses for the listed apps</strong>, th
 		<item name="wcf.acp.pip.userProfileMenu.info"><![CDATA[The <kbd>userProfileMenu</kbd> package installation plugin installs new menu items for the user profile menu. You can find more information in the <a href="https://docs.woltlab.com/package_pip_user-profile-menu.html" class="externalURL">developer documentation</a>.]]></item>
 		<item name="wcf.acp.pip.language.languageItemValue.de.description"><![CDATA[Helpful code fragments: <kbd>{literal}{if LANGUAGE_USE_INFORMAL_VARIANT}{else}{/if}{/literal}</kbd>, <kbd>„“</kbd>]]></item>
 		<item name="wcf.acp.pip.language.languageItemValue.en.description"><![CDATA[Helpful code fragments: <kbd>“”</kbd>]]></item>
+		<item name="wcf.acp.pip.option.optionName.error.notLowercase"><![CDATA[The option name may not include uppercase letters.]]></item>
+		<item name="wcf.acp.pip.option.optionName.error.pattern"><![CDATA[The option name must consist of lowercase latin letters, digits and underscores only. The first and last character must be letters.]]></item>
 	</category>
 	<category name="wcf.acp.reactionType">
 		<item name="wcf.acp.reactionType.delete.confirmMessage"><![CDATA[Do you really want to delete the reaction type <span class="confirmationObject">{$reactionType->getTitle()}</span>?]]></item>
@@ -3158,6 +3163,8 @@ the lost password form <a href="{link controller='LostPassword' isHtmlEmail=true
 		<item name="wcf.acp.user.authentication.failure.environment.user"><![CDATA[User]]></item>
 		<item name="wcf.acp.user.authentication.failure.environment.admin"><![CDATA[Administration]]></item>
 		<item name="wcf.acp.user.authentication.failure.time"><![CDATA[Date]]></item>
+		<item name="wcf.acp.user.authentication.failure.time.start"><![CDATA[Date from]]></item>
+		<item name="wcf.acp.user.authentication.failure.time.end"><![CDATA[Date to]]></item>
 		<item name="wcf.acp.user.authentication.failure.password"><![CDATA[Invalid Password]]></item>
 		<item name="wcf.acp.user.authentication.failure.username"><![CDATA[Unknown Username]]></item>
 		<item name="wcf.acp.user.authentication.failure.validationError"><![CDATA[Error]]></item>
