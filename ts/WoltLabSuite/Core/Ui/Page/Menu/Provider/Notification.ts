@@ -1,9 +1,9 @@
 import * as Ajax from "../../../../Ajax";
 import UiPageMenuProviderAbstract from "./Abstract";
-import { UiPageMenuProviderItem, ItemData } from "./Item";
+import { Item, ItemData } from "../../../User/Menu/Provider/Item";
 
 export class UiPageMenuProviderNotification extends UiPageMenuProviderAbstract {
-  private notifications?: UiPageMenuProviderItem[] = undefined;
+  private notifications?: Item[] = undefined;
 
   async loadContent(): Promise<void> {
     if (this.notifications) {
@@ -18,7 +18,7 @@ export class UiPageMenuProviderNotification extends UiPageMenuProviderAbstract {
         },
         silent: true,
         success: (data: AjaxResponse) => {
-          this.notifications = data.returnValues.map((itemData) => new UiPageMenuProviderItem(itemData));
+          this.notifications = data.returnValues.map((itemData) => new Item(itemData));
 
           resolve();
         },

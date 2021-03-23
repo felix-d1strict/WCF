@@ -414,6 +414,11 @@ if (COMPILER_TARGET_DEFAULT) {
 		 * @see        WCF.User.Panel.Abstract.init()
 		 */
 		init: function (options) {
+			require(["WoltLabSuite/Core/Ui/User/Menu/Provider/Notification"], ({ NotificationProvider }) => {
+				new NotificationProvider();
+			});
+
+			return;
 			options.enableMarkAsRead = true;
 			
 			this._super($('#userNotifications'), 'userNotifications', options);

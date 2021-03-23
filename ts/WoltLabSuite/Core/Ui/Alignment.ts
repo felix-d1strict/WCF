@@ -56,6 +56,7 @@ function tryAlignmentVertical(
   refOffsets: ElementOffset,
   windowHeight: number,
   verticalOffset: number,
+  isFixedPosition: boolean,
 ): VerticalResult {
   let bottom: Offset = "auto";
   let top: Offset = "auto";
@@ -72,16 +73,31 @@ function tryAlignmentVertical(
     }
   }
 
-  if (alignment === "top") {
-    const bodyHeight = document.body.clientHeight;
-    bottom = bodyHeight - refOffsets.top + verticalOffset;
-    if (bodyHeight - (bottom + elDimensions.height) < (window.scrollY || window.pageYOffset) + pageHeaderOffset) {
-      result = false;
+  if (isFixedPosition) {
+    const windowHeight = window.innerHeight;
+    if (alignment === "top") {
+      bottom = windowHeight - refOffsets.top + verticalOffset;
+      if (windowHeight - (bottom + elDimensions.height) < 0) {
+        result = false;
+      }
+    } else {
+      top = refOffsets.top + refDimensions.height + verticalOffset;
+      if (top + elDimensions.height > windowHeight) {
+        result = false;
+      }
     }
   } else {
-    top = refOffsets.top + refDimensions.height + verticalOffset;
-    if (top + elDimensions.height - (window.scrollY || window.pageYOffset) > windowHeight) {
-      result = false;
+    if (alignment === "top") {
+      const bodyHeight = document.body.clientHeight;
+      bottom = bodyHeight - refOffsets.top + verticalOffset;
+      if (bodyHeight - (bottom + elDimensions.height) < (window.scrollY || window.pageYOffset) + pageHeaderOffset) {
+        result = false;
+      }
+    } else {
+      top = refOffsets.top + refDimensions.height + verticalOffset;
+      if (top + elDimensions.height - (window.scrollY || window.pageYOffset) > windowHeight) {
+        result = false;
+      }
     }
   }
 
@@ -185,13 +201,32 @@ export function set(element: HTMLElement, referenceElement: HTMLElement, options
     visibility: "hidden !important",
   });
 
+  const refElement =
+    options.refDimensionsElement instanceof HTMLElement ? options.refDimensionsElement : referenceElement;
+  const isFixedPosition = window.getComputedStyle(element).getPropertyValue("position") === "fixed";
+  if (isFixedPosition) {
+    if (window.getComputedStyle(refElement).getPropertyValue("position") !== "fixed") {
+      if (
+        !refElement.offsetParent ||
+        window.getComputedStyle(refElement.offsetParent).getPropertyValue("position") !== "fixed"
+      ) {
+        throw new Error("Cannot calculate the position of a fixed element relative to a non-fixed element.");
+      }
+    }
+  }
+
   const elDimensions = DomUtil.outerDimensions(element);
-  const refDimensions = DomUtil.outerDimensions(
-    options.refDimensionsElement instanceof HTMLElement ? options.refDimensionsElement : referenceElement,
-  );
-  const refOffsets = DomUtil.offset(referenceElement);
+  const refDimensions = DomUtil.outerDimensions(refElement);
   const windowHeight = window.innerHeight;
-  const windowWidth = document.body.clientWidth;
+  const windowWidth = isFixedPosition ? window.innerWidth : document.body.clientWidth;
+
+  let refOffsets: { left: number; top: number };
+  if (isFixedPosition) {
+    const clientRect = refElement.getBoundingClientRect();
+    refOffsets = { left: clientRect.left, top: clientRect.top };
+  } else {
+    refOffsets = DomUtil.offset(refElement);
+  }
 
   let horizontal: HorizontalResult | null = null;
   let alignCenter = false;
@@ -241,6 +276,7 @@ export function set(element: HTMLElement, referenceElement: HTMLElement, options
     refOffsets,
     windowHeight,
     options.verticalOffset!,
+    isFixedPosition,
   );
   if (!vertical.result && (options.allowFlip === "both" || options.allowFlip === "vertical")) {
     const verticalFlipped = tryAlignmentVertical(
@@ -250,6 +286,7 @@ export function set(element: HTMLElement, referenceElement: HTMLElement, options
       refOffsets,
       windowHeight,
       options.verticalOffset!,
+      isFixedPosition,
     );
     // only use these results if it fits into the boundaries, otherwise both directions exceed and we honor the demanded direction
     if (verticalFlipped.result) {

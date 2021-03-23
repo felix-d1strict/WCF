@@ -18,7 +18,7 @@ define(["require", "exports", "tslib", "../Core", "../Dom/Traverse", "../Dom/Uti
     /**
      * Calculates top/bottom position and verifies if the element would be still within the page's boundaries.
      */
-    function tryAlignmentVertical(alignment, elDimensions, refDimensions, refOffsets, windowHeight, verticalOffset) {
+    function tryAlignmentVertical(alignment, elDimensions, refDimensions, refOffsets, windowHeight, verticalOffset, isFixedPosition) {
         let bottom = "auto";
         let top = "auto";
         let result = true;
@@ -33,17 +33,34 @@ define(["require", "exports", "tslib", "../Core", "../Dom/Traverse", "../Dom/Uti
                 pageHeaderOffset = 0;
             }
         }
-        if (alignment === "top") {
-            const bodyHeight = document.body.clientHeight;
-            bottom = bodyHeight - refOffsets.top + verticalOffset;
-            if (bodyHeight - (bottom + elDimensions.height) < (window.scrollY || window.pageYOffset) + pageHeaderOffset) {
-                result = false;
+        if (isFixedPosition) {
+            const windowHeight = window.innerHeight;
+            if (alignment === "top") {
+                bottom = windowHeight - refOffsets.top + verticalOffset;
+                if (windowHeight - (bottom + elDimensions.height) < 0) {
+                    result = false;
+                }
+            }
+            else {
+                top = refOffsets.top + refDimensions.height + verticalOffset;
+                if (top + elDimensions.height > windowHeight) {
+                    result = false;
+                }
             }
         }
         else {
-            top = refOffsets.top + refDimensions.height + verticalOffset;
-            if (top + elDimensions.height - (window.scrollY || window.pageYOffset) > windowHeight) {
-                result = false;
+            if (alignment === "top") {
+                const bodyHeight = document.body.clientHeight;
+                bottom = bodyHeight - refOffsets.top + verticalOffset;
+                if (bodyHeight - (bottom + elDimensions.height) < (window.scrollY || window.pageYOffset) + pageHeaderOffset) {
+                    result = false;
+                }
+            }
+            else {
+                top = refOffsets.top + refDimensions.height + verticalOffset;
+                if (top + elDimensions.height - (window.scrollY || window.pageYOffset) > windowHeight) {
+                    result = false;
+                }
             }
         }
         return {
@@ -130,11 +147,28 @@ define(["require", "exports", "tslib", "../Core", "../Dom/Traverse", "../Dom/Uti
             top: "0 !important",
             visibility: "hidden !important",
         });
+        const refElement = options.refDimensionsElement instanceof HTMLElement ? options.refDimensionsElement : referenceElement;
+        const isFixedPosition = window.getComputedStyle(element).getPropertyValue("position") === "fixed";
+        if (isFixedPosition) {
+            if (window.getComputedStyle(refElement).getPropertyValue("position") !== "fixed") {
+                if (!refElement.offsetParent ||
+                    window.getComputedStyle(refElement.offsetParent).getPropertyValue("position") !== "fixed") {
+                    throw new Error("Cannot calculate the position of a fixed element relative to a non-fixed element.");
+                }
+            }
+        }
         const elDimensions = Util_1.default.outerDimensions(element);
-        const refDimensions = Util_1.default.outerDimensions(options.refDimensionsElement instanceof HTMLElement ? options.refDimensionsElement : referenceElement);
-        const refOffsets = Util_1.default.offset(referenceElement);
+        const refDimensions = Util_1.default.outerDimensions(refElement);
         const windowHeight = window.innerHeight;
-        const windowWidth = document.body.clientWidth;
+        const windowWidth = isFixedPosition ? window.innerWidth : document.body.clientWidth;
+        let refOffsets;
+        if (isFixedPosition) {
+            const clientRect = refElement.getBoundingClientRect();
+            refOffsets = { left: clientRect.left, top: clientRect.top };
+        }
+        else {
+            refOffsets = Util_1.default.offset(refElement);
+        }
         let horizontal = null;
         let alignCenter = false;
         if (options.horizontal === "center") {
@@ -169,9 +203,9 @@ define(["require", "exports", "tslib", "../Core", "../Dom/Traverse", "../Dom/Uti
         }
         const left = horizontal.left;
         const right = horizontal.right;
-        let vertical = tryAlignmentVertical(options.vertical, elDimensions, refDimensions, refOffsets, windowHeight, options.verticalOffset);
+        let vertical = tryAlignmentVertical(options.vertical, elDimensions, refDimensions, refOffsets, windowHeight, options.verticalOffset, isFixedPosition);
         if (!vertical.result && (options.allowFlip === "both" || options.allowFlip === "vertical")) {
-            const verticalFlipped = tryAlignmentVertical(options.vertical === "top" ? "bottom" : "top", elDimensions, refDimensions, refOffsets, windowHeight, options.verticalOffset);
+            const verticalFlipped = tryAlignmentVertical(options.vertical === "top" ? "bottom" : "top", elDimensions, refDimensions, refOffsets, windowHeight, options.verticalOffset, isFixedPosition);
             // only use these results if it fits into the boundaries, otherwise both directions exceed and we honor the demanded direction
             if (verticalFlipped.result) {
                 vertical = verticalFlipped;

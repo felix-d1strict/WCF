@@ -1,11 +1,12 @@
 import { getTimeElement } from "../../../../Date/Util";
 
-export class UiPageMenuProviderItem {
-  private author?: string = undefined;
+export class Item {
+  private readonly data: ItemData;
   private element?: HTMLElement = undefined;
-  private unreadLink = "";
 
-  constructor(private readonly data: ItemData) {}
+  constructor(data: ItemData) {
+    this.data = data;
+  }
 
   getElement(): HTMLElement {
     if (!this.element) {
@@ -78,4 +79,4 @@ export interface ItemData {
   time: number;
 }
 
-export default UiPageMenuProviderItem;
+export default Item;

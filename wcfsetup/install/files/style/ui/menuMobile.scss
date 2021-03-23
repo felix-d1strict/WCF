@@ -350,3 +350,8 @@
 
 	@include wcfFontSmall;
 }
+
+/* Legacy */
+.menuOverlayMobile {
+	display: none;
+}

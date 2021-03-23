@@ -289,7 +289,7 @@
 			/* ringing animation for notification icon */
 			&#userNotifications:not([data-count="0"]) {
 				> a > .icon {
-					animation: fa-bell-ring 5s ease 10s 6;
+					//animation: fa-bell-ring 5s ease 10s 6;
 					transform-origin: 50% 0;
 				}
 			}
