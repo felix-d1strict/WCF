@@ -1,15 +1,18 @@
-define(["require", "exports", "tslib", "../../../../Ajax", "../../../Alignment", "./Item"], function (require, exports, tslib_1, Ajax, UiAlignment, Item_1) {
+define(["require", "exports", "tslib", "../../../../Ajax", "../../../../Dom/Change/Listener", "../../../Alignment", "../../../Dropdown/Simple", "./Item"], function (require, exports, tslib_1, Ajax, Listener_1, UiAlignment, Simple_1, Item_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.NotificationProvider = void 0;
     Ajax = tslib_1.__importStar(Ajax);
+    Listener_1 = tslib_1.__importDefault(Listener_1);
     UiAlignment = tslib_1.__importStar(UiAlignment);
+    Simple_1 = tslib_1.__importDefault(Simple_1);
     Item_1 = tslib_1.__importDefault(Item_1);
     class NotificationProvider {
         constructor() {
             this.body = undefined;
             this.container = undefined;
             this.items = [];
+            this.options = undefined;
             this.placeholderEmpty = undefined;
             this.placeholderLoading = undefined;
             this.state = 0 /* Idle */;
@@ -43,7 +46,8 @@ define(["require", "exports", "tslib", "../../../../Ajax", "../../../Alignment",
             else {
                 container.classList.add("userMenuProviderOpen");
                 listItem.classList.add("open");
-                UiAlignment.set(container, this.button);
+                this.render();
+                UiAlignment.set(container, this.button, { horizontal: "center" });
             }
         }
         buildHeader() {
@@ -57,7 +61,15 @@ define(["require", "exports", "tslib", "../../../../Ajax", "../../../Alignment",
             options.classList.add("userMenuProviderOptions");
             options.innerHTML = '<span class="icon icon24 fa-ellipsis-h"></span>';
             header.appendChild(options);
+            this.options = document.createElement("ul");
+            this.options.classList.add("dropdownMenu");
+            header.appendChild(this.options);
+            Simple_1.default.initV2(options, this.options);
+            Simple_1.default.registerCallback(options.id, (containerId, action) => this.toggleOptions(containerId, action));
             return header;
+        }
+        toggleOptions(containerId, action) {
+            console.log(containerId, action);
         }
         buildBody() {
             const body = document.createElement("div");
@@ -91,7 +103,8 @@ define(["require", "exports", "tslib", "../../../../Ajax", "../../../Alignment",
                 this.state = 3 /* Failure */;
                 return;
             }
-            this.items = data.map((itemData) => new Item_1.default(itemData));
+            const callbackMarkAsRead = (objectId) => this.markAsRead(objectId);
+            this.items = data.map((itemData) => new Item_1.default(itemData, callbackMarkAsRead));
             this.state = 2 /* Ready */;
             this.render();
         }
@@ -103,6 +116,7 @@ define(["require", "exports", "tslib", "../../../../Ajax", "../../../Alignment",
             }
             const body = this.body;
             body.innerHTML = "";
+            body.classList.add("userMenuProviderBodyPlaceholder");
             body.appendChild(this.placeholderLoading);
         }
         showContent() {
@@ -114,7 +128,9 @@ define(["require", "exports", "tslib", "../../../../Ajax", "../../../Alignment",
             else {
                 const fragment = document.createDocumentFragment();
                 this.items.map((item) => item.getElement()).forEach((element) => fragment.appendChild(element));
+                body.classList.remove("userMenuProviderBodyPlaceholder");
                 body.appendChild(fragment);
+                Listener_1.default.trigger();
             }
         }
         showPlaceholderEmpty() {
@@ -123,7 +139,9 @@ define(["require", "exports", "tslib", "../../../../Ajax", "../../../Alignment",
                 this.placeholderEmpty.classList.add("userMenuProviderPlaceholder", "userMenuProviderEmpty");
                 this.placeholderEmpty.textContent = "There is nothing to display.";
             }
-            this.body.appendChild(this.placeholderEmpty);
+            const body = this.body;
+            body.classList.add("userMenuProviderBodyPlaceholder");
+            body.appendChild(this.placeholderEmpty);
         }
         async loadData() {
             return new Promise((resolve, reject) => {
@@ -139,6 +157,16 @@ define(["require", "exports", "tslib", "../../../../Ajax", "../../../Alignment",
                         return true;
                     },
                 });
+            });
+        }
+        markAsRead(objectId) {
+            Ajax.apiOnce({
+                data: {
+                    actionName: "markAsConfirmed",
+                    className: "wcf\\data\\user\\notification\\UserNotificationAction",
+                    objectIDs: [objectId],
+                },
+                silent: true,
             });
         }
     }

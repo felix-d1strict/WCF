@@ -1,12 +1,16 @@
 import * as Ajax from "../../../../Ajax";
+import DomChangeListener from "../../../../Dom/Change/Listener";
 import * as UiAlignment from "../../../Alignment";
-import Item, { ItemData } from "./Item";
+import { NotificationAction } from "../../../Dropdown/Data";
+import UiDropdownSimple from "../../../Dropdown/Simple";
+import Item, { CallbackMarkAsRead, ItemData } from "./Item";
 
 export class NotificationProvider {
   private body?: HTMLElement = undefined;
   private readonly button: HTMLAnchorElement;
   private container?: HTMLElement = undefined;
   private items: Item[] = [];
+  private options?: HTMLElement = undefined;
   private placeholderEmpty?: HTMLElement = undefined;
   private placeholderLoading?: HTMLElement = undefined;
   private state: State = State.Idle;
@@ -51,7 +55,9 @@ export class NotificationProvider {
       container.classList.add("userMenuProviderOpen");
       listItem.classList.add("open");
 
-      UiAlignment.set(container, this.button);
+      this.render();
+
+      UiAlignment.set(container, this.button, { horizontal: "center" });
     }
   }
 
@@ -69,7 +75,17 @@ export class NotificationProvider {
     options.innerHTML = '<span class="icon icon24 fa-ellipsis-h"></span>';
     header.appendChild(options);
 
+    this.options = document.createElement("ul");
+    this.options.classList.add("dropdownMenu");
+    header.appendChild(this.options);
+    UiDropdownSimple.initV2(options, this.options);
+    UiDropdownSimple.registerCallback(options.id, (containerId, action) => this.toggleOptions(containerId, action));
+
     return header;
+  }
+
+  private toggleOptions(containerId: string, action: NotificationAction): void {
+    console.log(containerId, action);
   }
 
   private buildBody(): HTMLElement {
@@ -112,7 +128,8 @@ export class NotificationProvider {
       return;
     }
 
-    this.items = data.map((itemData) => new Item(itemData));
+    const callbackMarkAsRead: CallbackMarkAsRead = (objectId) => this.markAsRead(objectId);
+    this.items = data.map((itemData) => new Item(itemData, callbackMarkAsRead));
 
     this.state = State.Ready;
 
@@ -128,6 +145,7 @@ export class NotificationProvider {
 
     const body = this.body!;
     body.innerHTML = "";
+    body.classList.add("userMenuProviderBodyPlaceholder");
     body.appendChild(this.placeholderLoading);
   }
 
@@ -140,7 +158,10 @@ export class NotificationProvider {
     } else {
       const fragment = document.createDocumentFragment();
       this.items.map((item) => item.getElement()).forEach((element) => fragment.appendChild(element));
+      body.classList.remove("userMenuProviderBodyPlaceholder");
       body.appendChild(fragment);
+
+      DomChangeListener.trigger();
     }
   }
 
@@ -151,7 +172,9 @@ export class NotificationProvider {
       this.placeholderEmpty.textContent = "There is nothing to display.";
     }
 
-    this.body!.appendChild(this.placeholderEmpty);
+    const body = this.body!;
+    body.classList.add("userMenuProviderBodyPlaceholder");
+    body.appendChild(this.placeholderEmpty);
   }
 
   private async loadData(): Promise<ItemData[]> {
@@ -169,6 +192,17 @@ export class NotificationProvider {
           return true;
         },
       });
+    });
+  }
+
+  private markAsRead(objectId: number): void {
+    Ajax.apiOnce({
+      data: {
+        actionName: "markAsConfirmed",
+        className: "wcf\\data\\user\\notification\\UserNotificationAction",
+        objectIDs: [objectId],
+      },
+      silent: true,
     });
   }
 }

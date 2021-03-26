@@ -301,56 +301,6 @@
 	padding: 10px;
 }
 
-.pageMenuOverlayContentItem {
-	column-gap: 10px;
-	display: grid;
-	grid-template-areas:
-		"image text   marker"
-		"image meta marker";
-	grid-template-columns: min-content 1fr min-content;
-	padding: 10px;
-	row-gap: 5px;
-
-	& + .pageMenuOverlayContentItem {
-		border-top: 1px dashed $wcfContentBorderInner;
-	}
-}
-
-.pageMenuOverlayItemImage {
-	grid-area: image;
-	height: 32px;
-	margin-top: 4px;
-	width: 32px;
-}
-
-.pageMenuOverlayItemText {
-	grid-area: text;
-}
-
-.pageMenuOverlayItemMarker {
-	align-items: center;
-	display: flex;
-	grid-area: marker;
-	justify-content: center;
-	width: 20px;
-
-	&::before {
-		background-color: rgb(49, 138, 220);
-		border-radius: 50%;
-		content: "";
-		display: inline-block;
-		height: 12px;
-		width: 12px;
-	}
-}
-
-.pageMenuOverlayItemMeta {
-	color: $wcfContentDimmedText;
-	grid-area: meta;
-
-	@include wcfFontSmall;
-}
-
 /* Legacy */
 .menuOverlayMobile {
 	display: none;

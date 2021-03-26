@@ -1,3 +1,152 @@
 .userMenuProvider {
+    background-color: $wcfContentBackground;
+    border-radius: 3px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.16), 0 3px 6px rgba(0, 0, 0, 0.23);
+    color: $wcfContentText;
     position: fixed;
+    width: 350px;
+    z-index: 450;
+}
+
+.userMenuProviderHeader {
+    align-items: center;
+    display: flex;
+}
+
+.userMenuProviderTitle {
+    flex: 1 auto;
+    overflow: hidden;
+    padding: 10px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+
+    @include wcfFontHeadline;
+
+    font-weight: 600;
+}
+
+.userMenuProviderOptions {
+    color: $wcfContentDimmedText;
+    flex: 0 0 auto;
+    padding: 10px;
+
+    .icon {
+        color: inherit;
+    }
+}
+
+.userMenuProviderBody {
+    border-radius: 0 0 3px 3px;
+    min-height: 80px;
+    max-height: 450px;
+    overflow: auto;
+}
+
+.userMenuProviderPlaceholder {
+    color: $wcfContentDimmedText;
+    left: 50%;
+    position: absolute;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    white-space: nowrap;
+}
+
+.userMenuProviderItem {
+    display: grid;
+    grid-template-areas:
+        "image text markAsRead"
+        "image meta markAsRead";
+    grid-template-columns: min-content 1fr min-content;
+    padding: 10px 0 10px 10px;
+    position: relative;
+    row-gap: 5px;
+
+    &.userMenuProviderItemOutstanding {
+        .userMenuProviderItemText {
+            color: $wcfContentText;
+        }
+
+        .userMenuProviderItemMeta::after {
+            background-color: rgb(49, 138, 220);
+            border-radius: 50%;
+            content: "";
+            display: inline-block;
+            height: 8px;
+            margin-left: 5px;
+            width: 9px;
+        }
+
+        .userMenuProviderItemMarkAsRead {
+            visibility: visible;
+        }
+    }
+}
+
+.userMenuProviderItemImage {
+    grid-area: image;
+    height: 32px;
+    margin-right: 10px;
+    margin-top: 4px;
+    width: 32px;
+}
+
+.userMenuProviderItemText {
+    color: $wcfContentDimmedText;
+    grid-area: text;
+}
+
+.userMenuProviderItemMeta {
+    color: $wcfContentDimmedText;
+    grid-area: meta;
+
+    @include wcfFontSmall;
+}
+
+.userMenuProviderItemMarkAsRead {
+    align-items: center;
+    display: flex;
+    grid-area: markAsRead;
+    justify-content: center;
+    visibility: hidden;
+    width: 44px;
+
+    .icon {
+        color: inherit;
+    }
+}
+
+.userMenuProviderItemShadow {
+    grid-column-end: text;
+    grid-column-start: image;
+    grid-row-end: meta;
+    grid-row-start: text;
+    height: 100%;
+    position: absolute;
+    width: 100%;
+}
+
+html:not(.touch) {
+    .userMenuProviderOptions {
+        cursor: pointer;
+
+        &:hover {
+            color: $wcfContentText;
+
+            .icon {
+                cursor: inherit;
+            }
+        }
+    }
+
+    .userMenuProviderItem:hover {
+        background-color: $wcfTabularBoxBackgroundActive;
+    }
+
+    .userMenuProviderItemMarkAsRead {
+        cursor: pointer;
+
+        .icon {
+            cursor: inherit;
+        }
+    }
 }

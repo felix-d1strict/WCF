@@ -21,7 +21,7 @@ define(["require", "exports", "tslib", "../../../../Ajax", "./Abstract", "../../
                     },
                     silent: true,
                     success: (data) => {
-                        this.notifications = data.returnValues.map((itemData) => new Item_1.Item(itemData));
+                        this.notifications = data.returnValues.map((itemData) => new Item_1.Item(itemData, (objectId) => { }));
                         resolve();
                     },
                     failure() {

@@ -18,7 +18,7 @@ export class UiPageMenuProviderNotification extends UiPageMenuProviderAbstract {
         },
         silent: true,
         success: (data: AjaxResponse) => {
-          this.notifications = data.returnValues.map((itemData) => new Item(itemData));
+          this.notifications = data.returnValues.map((itemData) => new Item(itemData, (objectId: number) => {}));
 
           resolve();
         },

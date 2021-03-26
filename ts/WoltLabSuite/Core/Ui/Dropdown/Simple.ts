@@ -489,6 +489,29 @@ const UiDropdownSimple = {
     _menus.set(containerId, menu);
   },
 
+  initV2(button: HTMLElement, menu: HTMLElement): void {
+    UiDropdownSimple.setup();
+
+    const containerId = DomUtil.identify(button);
+    if (_dropdowns.has(containerId)) {
+      return;
+    }
+
+    _dropdowns.set(containerId, button);
+    _menuContainer.appendChild(menu);
+
+    _menus.set(containerId, menu);
+
+    button.setAttribute("role", "button");
+    button.tabIndex = 0;
+    button.setAttribute("aria-haspopup", "true");
+    button.setAttribute("aria-expanded", "false");
+
+    button.classList.add("jsDropdownEnabled");
+    button.addEventListener("click", toggle);
+    button.addEventListener("keydown", handleKeyDown);
+  },
+
   /**
    * Registers a callback for open/close events.
    */
