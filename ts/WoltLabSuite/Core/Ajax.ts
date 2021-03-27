@@ -9,7 +9,14 @@
  */
 
 import AjaxRequest from "./Ajax/Request";
-import { AjaxCallbackObject, CallbackSuccess, CallbackFailure, RequestData, RequestOptions } from "./Ajax/Data";
+import {
+  AjaxCallbackObject,
+  CallbackSuccess,
+  CallbackFailure,
+  RequestData,
+  RequestOptions,
+  SimpleRequestOptions,
+} from "./Ajax/Data";
 
 const _cache = new WeakMap();
 
@@ -84,6 +91,27 @@ export function apiOnce(options: RequestOptions): void {
 
   const request = new AjaxRequest(options);
   request.sendRequest(false);
+}
+
+/**
+ * Simplified access to the AJAX api using promises.
+ * 
+ * @since 5.4
+ */
+export async function simpleApi(options: SimpleRequestOptions): Promise<unknown> {
+  return new Promise((resolve, reject) => {
+    apiOnce({
+      ...options,
+      success(data: unknown) {
+        resolve(data);
+      },
+      failure() {
+        reject();
+
+        return false;
+      },
+    });
+  });
 }
 
 /**

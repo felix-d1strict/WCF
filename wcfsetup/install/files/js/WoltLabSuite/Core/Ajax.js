@@ -10,7 +10,7 @@
 define(["require", "exports", "tslib", "./Ajax/Request"], function (require, exports, tslib_1, Request_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    exports.getRequestObject = exports.apiOnce = exports.api = void 0;
+    exports.getRequestObject = exports.simpleApi = exports.apiOnce = exports.api = void 0;
     Request_1 = tslib_1.__importDefault(Request_1);
     const _cache = new WeakMap();
     /**
@@ -72,6 +72,22 @@ define(["require", "exports", "tslib", "./Ajax/Request"], function (require, exp
         request.sendRequest(false);
     }
     exports.apiOnce = apiOnce;
+    /**
+     * Simplified access to the AJAX api using promises.
+     *
+     * @since 5.4
+     */
+    async function simpleApi(options) {
+        return new Promise((resolve, reject) => {
+            apiOnce(Object.assign(Object.assign({}, options), { success(data) {
+                    resolve(data);
+                }, failure() {
+                    reject();
+                    return false;
+                } }));
+        });
+    }
+    exports.simpleApi = simpleApi;
     /**
      * Returns the request object used for an earlier call to `api()`.
      */

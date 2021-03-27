@@ -55,6 +55,15 @@ export interface AjaxCallbackObject {
   _ajaxSetup: AjaxCallbackSetup;
 }
 
+export interface SimpleRequestOptions {
+  // request data
+  data: RequestData;
+  
+  // behavior
+  ignoreError?: boolean;
+  silent?: boolean;
+}
+
 export interface RequestOptions {
   // request data
   data?: RequestData;
