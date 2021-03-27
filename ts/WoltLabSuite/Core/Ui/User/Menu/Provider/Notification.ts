@@ -1,6 +1,7 @@
 import * as Ajax from "../../../../Ajax";
 import DomChangeListener from "../../../../Dom/Change/Listener";
 import * as UiAlignment from "../../../Alignment";
+import UiCloseOverlay from "../../../CloseOverlay";
 import { NotificationAction } from "../../../Dropdown/Data";
 import UiDropdownSimple from "../../../Dropdown/Simple";
 import Item, { CallbackMarkAsRead, ItemData } from "./Item";
@@ -23,6 +24,7 @@ export class NotificationProvider {
 
   private click(event: MouseEvent): void {
     event.preventDefault();
+    event.stopPropagation();
 
     this.build();
     this.toggle();
@@ -36,30 +38,48 @@ export class NotificationProvider {
     this.container = document.createElement("div");
     this.container.classList.add("userMenuProvider");
 
+    // TODO: This prevents the dialog from closing via unintentional clicks, but
+    // will also prevent the options drop-down menu from being closed.
+    this.container.addEventListener("click", (event) => event.stopPropagation());
+
     const header = this.buildHeader();
     this.container.appendChild(header);
 
     this.body = this.buildBody();
     this.container.appendChild(this.body);
-
-    document.body.appendChild(this.container);
   }
 
   private toggle(): void {
+    const identifier = "WoltLabSuite/Core/Ui/User/Menu/Provider";
     const listItem = this.button.parentElement!;
 
     const container = this.container!;
-    if (container.classList.contains("userMenuProviderOpen")) {
-      container.classList.remove("userMenuProviderOpen");
-      listItem.classList.remove("open");
+    if (container.parentElement !== null) {
+      this.close(container, listItem);
+
+      UiCloseOverlay.remove(identifier);
     } else {
-      container.classList.add("userMenuProviderOpen");
-      listItem.classList.add("open");
+      this.open(container, listItem);
 
-      this.render();
-
-      UiAlignment.set(container, this.button, { horizontal: "center" });
+      UiCloseOverlay.add(identifier, () => {
+        this.close(container, listItem);
+      });
     }
+  }
+
+  private open(container: HTMLElement, listItem: HTMLElement): void {
+    listItem.classList.add("open");
+    document.body.appendChild(container);
+
+    this.render();
+
+    UiAlignment.set(container, this.button, { horizontal: "center" });
+  }
+
+  private close(container: HTMLElement, listItem: HTMLElement): void {
+    listItem.classList.remove("open");
+
+    container.remove();
   }
 
   private buildHeader(): HTMLElement {

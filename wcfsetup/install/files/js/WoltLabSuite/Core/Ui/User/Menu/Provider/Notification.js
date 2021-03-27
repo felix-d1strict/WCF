@@ -1,10 +1,11 @@
-define(["require", "exports", "tslib", "../../../../Ajax", "../../../../Dom/Change/Listener", "../../../Alignment", "../../../Dropdown/Simple", "./Item", "./Option"], function (require, exports, tslib_1, Ajax, Listener_1, UiAlignment, Simple_1, Item_1, Option_1) {
+define(["require", "exports", "tslib", "../../../../Ajax", "../../../../Dom/Change/Listener", "../../../Alignment", "../../../CloseOverlay", "../../../Dropdown/Simple", "./Item", "./Option"], function (require, exports, tslib_1, Ajax, Listener_1, UiAlignment, CloseOverlay_1, Simple_1, Item_1, Option_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.NotificationProvider = void 0;
     Ajax = tslib_1.__importStar(Ajax);
     Listener_1 = tslib_1.__importDefault(Listener_1);
     UiAlignment = tslib_1.__importStar(UiAlignment);
+    CloseOverlay_1 = tslib_1.__importDefault(CloseOverlay_1);
     Simple_1 = tslib_1.__importDefault(Simple_1);
     Item_1 = tslib_1.__importDefault(Item_1);
     Option_1 = tslib_1.__importDefault(Option_1);
@@ -22,6 +23,7 @@ define(["require", "exports", "tslib", "../../../../Ajax", "../../../../Dom/Chan
         }
         click(event) {
             event.preventDefault();
+            event.stopPropagation();
             this.build();
             this.toggle();
         }
@@ -31,25 +33,38 @@ define(["require", "exports", "tslib", "../../../../Ajax", "../../../../Dom/Chan
             }
             this.container = document.createElement("div");
             this.container.classList.add("userMenuProvider");
+            // TODO: This prevents the dialog from closing via unintentional clicks, but
+            // will also prevent the options drop-down menu from being closed.
+            this.container.addEventListener("click", (event) => event.stopPropagation());
             const header = this.buildHeader();
             this.container.appendChild(header);
             this.body = this.buildBody();
             this.container.appendChild(this.body);
-            document.body.appendChild(this.container);
         }
         toggle() {
+            const identifier = "WoltLabSuite/Core/Ui/User/Menu/Provider";
             const listItem = this.button.parentElement;
             const container = this.container;
-            if (container.classList.contains("userMenuProviderOpen")) {
-                container.classList.remove("userMenuProviderOpen");
-                listItem.classList.remove("open");
+            if (container.parentElement !== null) {
+                this.close(container, listItem);
+                CloseOverlay_1.default.remove(identifier);
             }
             else {
-                container.classList.add("userMenuProviderOpen");
-                listItem.classList.add("open");
-                this.render();
-                UiAlignment.set(container, this.button, { horizontal: "center" });
+                this.open(container, listItem);
+                CloseOverlay_1.default.add(identifier, () => {
+                    this.close(container, listItem);
+                });
             }
+        }
+        open(container, listItem) {
+            listItem.classList.add("open");
+            document.body.appendChild(container);
+            this.render();
+            UiAlignment.set(container, this.button, { horizontal: "center" });
+        }
+        close(container, listItem) {
+            listItem.classList.remove("open");
+            container.remove();
         }
         buildHeader() {
             const header = document.createElement("div");
