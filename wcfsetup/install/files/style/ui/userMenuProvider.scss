@@ -5,7 +5,7 @@
     color: $wcfContentText;
     position: fixed;
     width: 350px;
-    z-index: 450;
+    z-index: 300;
 }
 
 .userMenuProviderHeader {
@@ -93,6 +93,7 @@
 .userMenuProviderItemText {
     color: $wcfContentDimmedText;
     grid-area: text;
+    transition: color .12s linear;
 }
 
 .userMenuProviderItemMeta {

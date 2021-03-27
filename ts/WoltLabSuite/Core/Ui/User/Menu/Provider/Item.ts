@@ -4,6 +4,7 @@ export class Item {
   private readonly callbackMarkAsRead: CallbackMarkAsRead;
   private readonly data: ItemData;
   private element?: HTMLElement = undefined;
+  private markAsReadIcon?: HTMLSpanElement = undefined;
 
   constructor(data: ItemData, callbackMarkAsRead: CallbackMarkAsRead) {
     this.data = data;
@@ -18,6 +19,10 @@ export class Item {
     this.rebuild();
 
     return this.element;
+  }
+
+  isConfirmed(): boolean {
+    return this.data.isConfirmed;
   }
 
   private render(): HTMLElement {
@@ -35,7 +40,9 @@ export class Item {
 
     const markAsRead = document.createElement("div");
     markAsRead.classList.add("userMenuProviderItemMarkAsRead");
-    markAsRead.innerHTML = '<span class="icon icon16 fa-check"></span>';
+    this.markAsReadIcon = document.createElement("span");
+    this.markAsReadIcon.classList.add("icon", "icon16", "fa-check");
+    markAsRead.appendChild(this.markAsReadIcon);
     markAsRead.addEventListener("click", (event) => this.markAsRead(event));
     item.appendChild(markAsRead);
 
@@ -77,14 +84,25 @@ export class Item {
     }
   }
 
-  private markAsRead(event: MouseEvent): void {
+  private async markAsRead(event: MouseEvent): Promise<void> {
     event.preventDefault();
     event.stopPropagation();
 
-    this.callbackMarkAsRead(this.data.objectId);
+    const icon = this.markAsReadIcon!;
+    if (icon.classList.contains("fa-spinner")) {
+      return;
+    }
 
-    this.data.isConfirmed = true;
-    this.rebuild();
+    icon.classList.replace("fa-check", "fa-spinner");
+
+    try {
+      await this.callbackMarkAsRead(this.data.objectId);
+
+      this.data.isConfirmed = true;
+      this.rebuild();
+    } finally {
+      icon.classList.replace("fa-spinner", "fa-check");
+    }
   }
 }
 
@@ -107,6 +125,6 @@ export interface ItemData {
   time: number;
 }
 
-export type CallbackMarkAsRead = (objectId: number) => void;
+export type CallbackMarkAsRead = (objectId: number) => Promise<void>;
 
 export default Item;

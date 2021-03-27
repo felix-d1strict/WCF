@@ -5,6 +5,7 @@ define(["require", "exports", "../../../../Date/Util"], function (require, expor
     class Item {
         constructor(data, callbackMarkAsRead) {
             this.element = undefined;
+            this.markAsReadIcon = undefined;
             this.data = data;
             this.callbackMarkAsRead = callbackMarkAsRead;
         }
@@ -14,6 +15,9 @@ define(["require", "exports", "../../../../Date/Util"], function (require, expor
             }
             this.rebuild();
             return this.element;
+        }
+        isConfirmed() {
+            return this.data.isConfirmed;
         }
         render() {
             const item = document.createElement("div");
@@ -27,7 +31,9 @@ define(["require", "exports", "../../../../Date/Util"], function (require, expor
             item.appendChild(text);
             const markAsRead = document.createElement("div");
             markAsRead.classList.add("userMenuProviderItemMarkAsRead");
-            markAsRead.innerHTML = '<span class="icon icon16 fa-check"></span>';
+            this.markAsReadIcon = document.createElement("span");
+            this.markAsReadIcon.classList.add("icon", "icon16", "fa-check");
+            markAsRead.appendChild(this.markAsReadIcon);
             markAsRead.addEventListener("click", (event) => this.markAsRead(event));
             item.appendChild(markAsRead);
             const date = new Date(this.data.time * 1000);
@@ -62,12 +68,22 @@ define(["require", "exports", "../../../../Date/Util"], function (require, expor
                 element.classList.add("userMenuProviderItemOutstanding");
             }
         }
-        markAsRead(event) {
+        async markAsRead(event) {
             event.preventDefault();
             event.stopPropagation();
-            this.callbackMarkAsRead(this.data.objectId);
-            this.data.isConfirmed = true;
-            this.rebuild();
+            const icon = this.markAsReadIcon;
+            if (icon.classList.contains("fa-spinner")) {
+                return;
+            }
+            icon.classList.replace("fa-check", "fa-spinner");
+            try {
+                await this.callbackMarkAsRead(this.data.objectId);
+                this.data.isConfirmed = true;
+                this.rebuild();
+            }
+            finally {
+                icon.classList.replace("fa-spinner", "fa-check");
+            }
         }
     }
     exports.Item = Item;

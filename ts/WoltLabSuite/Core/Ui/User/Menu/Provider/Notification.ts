@@ -4,13 +4,14 @@ import * as UiAlignment from "../../../Alignment";
 import { NotificationAction } from "../../../Dropdown/Data";
 import UiDropdownSimple from "../../../Dropdown/Simple";
 import Item, { CallbackMarkAsRead, ItemData } from "./Item";
+import Option from "./Option";
 
 export class NotificationProvider {
   private body?: HTMLElement = undefined;
   private readonly button: HTMLAnchorElement;
   private container?: HTMLElement = undefined;
   private items: Item[] = [];
-  private options?: HTMLElement = undefined;
+  private readonly options = new Map<string, Option>();
   private placeholderEmpty?: HTMLElement = undefined;
   private placeholderLoading?: HTMLElement = undefined;
   private state: State = State.Idle;
@@ -70,22 +71,62 @@ export class NotificationProvider {
     title.textContent = "Notifications";
     header.appendChild(title);
 
-    const options = document.createElement("span");
-    options.classList.add("userMenuProviderOptions");
-    options.innerHTML = '<span class="icon icon24 fa-ellipsis-h"></span>';
-    header.appendChild(options);
+    const optionContainer = document.createElement("div");
+    optionContainer.classList.add("userMenuProviderOptionContainer", "dropdown");
+    header.appendChild(optionContainer);
 
-    this.options = document.createElement("ul");
-    this.options.classList.add("dropdownMenu");
-    header.appendChild(this.options);
-    UiDropdownSimple.initV2(options, this.options);
-    UiDropdownSimple.registerCallback(options.id, (containerId, action) => this.toggleOptions(containerId, action));
+    const options = document.createElement("span");
+    options.classList.add("userMenuProviderOptions", "dropdownToggle");
+    options.innerHTML = '<span class="icon icon24 fa-ellipsis-h"></span>';
+    optionContainer.appendChild(options);
+
+    const optionMenu = document.createElement("ul");
+    optionMenu.classList.add("dropdownMenu");
+    optionMenu.appendChild(this.buildOptions());
+
+    optionContainer.appendChild(optionMenu);
+    UiDropdownSimple.init(options);
+    UiDropdownSimple.registerCallback(optionContainer.id, (containerId, action) =>
+      this.toggleOptions(containerId, action),
+    );
 
     return header;
   }
 
-  private toggleOptions(containerId: string, action: NotificationAction): void {
-    console.log(containerId, action);
+  private buildOptions(): DocumentFragment {
+    this.options.set(
+      "markAllAsRead",
+      new Option({
+        click: (option: Option) => {},
+        label: "Mark all as read",
+      }),
+    );
+
+    this.options.set("settings", new Option({ label: "Notification Settings", link: "#" }));
+
+    this.options.set("showAll", new Option({ label: "Show All Notifications", link: "#" }));
+
+    const fragment = document.createDocumentFragment();
+    this.options.forEach((option) => {
+      fragment.appendChild(option.getElement());
+    });
+
+    return fragment;
+  }
+
+  private toggleOptions(_containerId: string, action: NotificationAction): void {
+    if (action === "close") {
+      return;
+    }
+
+    const markAllAsRead = this.options.get("markAllAsRead")!;
+    if (this.items.some((item) => !item.isConfirmed())) {
+      markAllAsRead.show();
+    } else {
+      markAllAsRead.hide();
+    }
+
+    markAllAsRead.rebuild();
   }
 
   private buildBody(): HTMLElement {
@@ -178,25 +219,19 @@ export class NotificationProvider {
   }
 
   private async loadData(): Promise<ItemData[]> {
-    return new Promise((resolve, reject) => {
-      Ajax.apiOnce({
-        data: {
-          actionName: "getOutstandingNotifications",
-          className: "wcf\\data\\user\\notification\\UserNotificationAction",
-        },
-        silent: true,
-        success: (data: AjaxResponse) => resolve(data.returnValues),
-        failure() {
-          reject();
+    const data = (await Ajax.simpleApi({
+      data: {
+        actionName: "getOutstandingNotifications",
+        className: "wcf\\data\\user\\notification\\UserNotificationAction",
+      },
+      silent: true,
+    })) as AjaxResponse;
 
-          return true;
-        },
-      });
-    });
+    return data.returnValues;
   }
 
-  private markAsRead(objectId: number): void {
-    Ajax.apiOnce({
+  private async markAsRead(objectId: number): Promise<void> {
+    await Ajax.simpleApi({
       data: {
         actionName: "markAsConfirmed",
         className: "wcf\\data\\user\\notification\\UserNotificationAction",

@@ -1,4 +1,4 @@
-define(["require", "exports", "tslib", "../../../../Ajax", "./Abstract", "../../../User/Menu/Provider/Item"], function (require, exports, tslib_1, Ajax, Abstract_1, Item_1) {
+define(["require", "exports", "tslib", "../../../../Ajax", "./Abstract"], function (require, exports, tslib_1, Ajax, Abstract_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.UiPageMenuProviderNotification = void 0;
@@ -21,7 +21,7 @@ define(["require", "exports", "tslib", "../../../../Ajax", "./Abstract", "../../
                     },
                     silent: true,
                     success: (data) => {
-                        this.notifications = data.returnValues.map((itemData) => new Item_1.Item(itemData, (objectId) => { }));
+                        //this.notifications = data.returnValues.map((itemData) => new Item(itemData, (objectId: number) => {}));
                         resolve();
                     },
                     failure() {

@@ -1,4 +1,4 @@
-define(["require", "exports", "tslib", "../../../../Ajax", "../../../../Dom/Change/Listener", "../../../Alignment", "../../../Dropdown/Simple", "./Item"], function (require, exports, tslib_1, Ajax, Listener_1, UiAlignment, Simple_1, Item_1) {
+define(["require", "exports", "tslib", "../../../../Ajax", "../../../../Dom/Change/Listener", "../../../Alignment", "../../../Dropdown/Simple", "./Item", "./Option"], function (require, exports, tslib_1, Ajax, Listener_1, UiAlignment, Simple_1, Item_1, Option_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.NotificationProvider = void 0;
@@ -7,12 +7,13 @@ define(["require", "exports", "tslib", "../../../../Ajax", "../../../../Dom/Chan
     UiAlignment = tslib_1.__importStar(UiAlignment);
     Simple_1 = tslib_1.__importDefault(Simple_1);
     Item_1 = tslib_1.__importDefault(Item_1);
+    Option_1 = tslib_1.__importDefault(Option_1);
     class NotificationProvider {
         constructor() {
             this.body = undefined;
             this.container = undefined;
             this.items = [];
-            this.options = undefined;
+            this.options = new Map();
             this.placeholderEmpty = undefined;
             this.placeholderLoading = undefined;
             this.state = 0 /* Idle */;
@@ -57,19 +58,46 @@ define(["require", "exports", "tslib", "../../../../Ajax", "../../../../Dom/Chan
             title.classList.add("userMenuProviderTitle");
             title.textContent = "Notifications";
             header.appendChild(title);
+            const optionContainer = document.createElement("div");
+            optionContainer.classList.add("userMenuProviderOptionContainer", "dropdown");
+            header.appendChild(optionContainer);
             const options = document.createElement("span");
-            options.classList.add("userMenuProviderOptions");
+            options.classList.add("userMenuProviderOptions", "dropdownToggle");
             options.innerHTML = '<span class="icon icon24 fa-ellipsis-h"></span>';
-            header.appendChild(options);
-            this.options = document.createElement("ul");
-            this.options.classList.add("dropdownMenu");
-            header.appendChild(this.options);
-            Simple_1.default.initV2(options, this.options);
-            Simple_1.default.registerCallback(options.id, (containerId, action) => this.toggleOptions(containerId, action));
+            optionContainer.appendChild(options);
+            const optionMenu = document.createElement("ul");
+            optionMenu.classList.add("dropdownMenu");
+            optionMenu.appendChild(this.buildOptions());
+            optionContainer.appendChild(optionMenu);
+            Simple_1.default.init(options);
+            Simple_1.default.registerCallback(optionContainer.id, (containerId, action) => this.toggleOptions(containerId, action));
             return header;
         }
-        toggleOptions(containerId, action) {
-            console.log(containerId, action);
+        buildOptions() {
+            this.options.set("markAllAsRead", new Option_1.default({
+                click: (option) => { },
+                label: "Mark all as read",
+            }));
+            this.options.set("settings", new Option_1.default({ label: "Notification Settings", link: "#" }));
+            this.options.set("showAll", new Option_1.default({ label: "Show All Notifications", link: "#" }));
+            const fragment = document.createDocumentFragment();
+            this.options.forEach((option) => {
+                fragment.appendChild(option.getElement());
+            });
+            return fragment;
+        }
+        toggleOptions(_containerId, action) {
+            if (action === "close") {
+                return;
+            }
+            const markAllAsRead = this.options.get("markAllAsRead");
+            if (this.items.some((item) => !item.isConfirmed())) {
+                markAllAsRead.show();
+            }
+            else {
+                markAllAsRead.hide();
+            }
+            markAllAsRead.rebuild();
         }
         buildBody() {
             const body = document.createElement("div");
@@ -144,23 +172,17 @@ define(["require", "exports", "tslib", "../../../../Ajax", "../../../../Dom/Chan
             body.appendChild(this.placeholderEmpty);
         }
         async loadData() {
-            return new Promise((resolve, reject) => {
-                Ajax.apiOnce({
-                    data: {
-                        actionName: "getOutstandingNotifications",
-                        className: "wcf\\data\\user\\notification\\UserNotificationAction",
-                    },
-                    silent: true,
-                    success: (data) => resolve(data.returnValues),
-                    failure() {
-                        reject();
-                        return true;
-                    },
-                });
-            });
+            const data = (await Ajax.simpleApi({
+                data: {
+                    actionName: "getOutstandingNotifications",
+                    className: "wcf\\data\\user\\notification\\UserNotificationAction",
+                },
+                silent: true,
+            }));
+            return data.returnValues;
         }
-        markAsRead(objectId) {
-            Ajax.apiOnce({
+        async markAsRead(objectId) {
+            await Ajax.simpleApi({
                 data: {
                     actionName: "markAsConfirmed",
                     className: "wcf\\data\\user\\notification\\UserNotificationAction",
