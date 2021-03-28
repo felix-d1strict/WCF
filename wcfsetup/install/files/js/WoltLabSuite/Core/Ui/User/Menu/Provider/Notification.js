@@ -18,8 +18,12 @@ define(["require", "exports", "tslib", "../../../../Ajax", "../../../../Dom/Chan
             this.placeholderEmpty = undefined;
             this.placeholderLoading = undefined;
             this.state = 0 /* Idle */;
+            this.tabIndex = -1;
+            this.title = undefined;
             this.button = document.querySelector("#userNotifications > a");
             this.button.addEventListener("click", (event) => this.click(event));
+            this.button.tabIndex = 0;
+            this.button.setAttribute("role", "button");
         }
         click(event) {
             event.preventDefault();
@@ -33,27 +37,64 @@ define(["require", "exports", "tslib", "../../../../Ajax", "../../../../Dom/Chan
             }
             this.container = document.createElement("div");
             this.container.classList.add("userMenuProvider");
+            this.container.setAttribute("role", "dialog");
             // TODO: This prevents the dialog from closing via unintentional clicks, but
             // will also prevent the options drop-down menu from being closed.
             this.container.addEventListener("click", (event) => event.stopPropagation());
+            this.container.addEventListener("keydown", (event) => this.keydown(event));
             const header = this.buildHeader();
             this.container.appendChild(header);
             this.body = this.buildBody();
             this.container.appendChild(this.body);
         }
+        keydown(event) {
+            if (event.key === "Escape") {
+                // TODO: The signature of the `close()` method is awful.
+                this.close(this.container, this.button);
+                this.button.focus();
+            }
+            if (event.key === "Tab") {
+                event.preventDefault();
+                event.stopPropagation();
+                let element;
+                if (event.shiftKey) {
+                    element = this.getPreviousFocusableElement();
+                }
+                else {
+                    element = this.getNextFocusableElement();
+                }
+                if (element) {
+                    element.focus();
+                }
+            }
+        }
+        getFocusableElements() {
+            return Array.from(this.container.querySelectorAll('[tabindex]:not([tabindex^="-"]):not([inert])'));
+        }
+        getNextFocusableElement() {
+            const elements = this.getFocusableElements();
+            this.tabIndex++;
+            if (this.tabIndex === elements.length) {
+                this.tabIndex = 0;
+            }
+            return elements[this.tabIndex] || null;
+        }
+        getPreviousFocusableElement() {
+            const elements = this.getFocusableElements();
+            this.tabIndex--;
+            if (this.tabIndex < 0) {
+                this.tabIndex = elements.length - 1;
+            }
+            return elements[this.tabIndex] || null;
+        }
         toggle() {
-            const identifier = "WoltLabSuite/Core/Ui/User/Menu/Provider";
             const listItem = this.button.parentElement;
             const container = this.container;
             if (container.parentElement !== null) {
                 this.close(container, listItem);
-                CloseOverlay_1.default.remove(identifier);
             }
             else {
                 this.open(container, listItem);
-                CloseOverlay_1.default.add(identifier, () => {
-                    this.close(container, listItem);
-                });
             }
         }
         open(container, listItem) {
@@ -61,24 +102,35 @@ define(["require", "exports", "tslib", "../../../../Ajax", "../../../../Dom/Chan
             document.body.appendChild(container);
             this.render();
             UiAlignment.set(container, this.button, { horizontal: "center" });
+            this.title.focus();
+            const identifier = "WoltLabSuite/Core/Ui/User/Menu/Provider";
+            CloseOverlay_1.default.add(identifier, () => {
+                this.close(container, listItem);
+            });
         }
         close(container, listItem) {
             listItem.classList.remove("open");
             container.remove();
+            const identifier = "WoltLabSuite/Core/Ui/User/Menu/Provider";
+            CloseOverlay_1.default.remove(identifier);
         }
         buildHeader() {
             const header = document.createElement("div");
             header.classList.add("userMenuProviderHeader");
-            const title = document.createElement("span");
-            title.classList.add("userMenuProviderTitle");
-            title.textContent = "Notifications";
-            header.appendChild(title);
+            this.title = document.createElement("span");
+            this.title.classList.add("userMenuProviderTitle");
+            this.title.textContent = "Notifications";
+            this.title.tabIndex = -1;
+            this.container.setAttribute("aria-label", "Notifications");
+            header.appendChild(this.title);
             const optionContainer = document.createElement("div");
             optionContainer.classList.add("userMenuProviderOptionContainer", "dropdown");
             header.appendChild(optionContainer);
             const options = document.createElement("span");
             options.classList.add("userMenuProviderOptions", "dropdownToggle");
             options.innerHTML = '<span class="icon icon24 fa-ellipsis-h"></span>';
+            options.tabIndex = 0;
+            options.setAttribute("role", "button");
             optionContainer.appendChild(options);
             const optionMenu = document.createElement("ul");
             optionMenu.classList.add("dropdownMenu");
@@ -90,7 +142,7 @@ define(["require", "exports", "tslib", "../../../../Ajax", "../../../../Dom/Chan
         }
         buildOptions() {
             this.options.set("markAllAsRead", new Option_1.default({
-                click: (option) => { },
+                click: (_option) => { },
                 label: "Mark all as read",
             }));
             this.options.set("settings", new Option_1.default({ label: "Notification Settings", link: "#" }));
@@ -172,7 +224,11 @@ define(["require", "exports", "tslib", "../../../../Ajax", "../../../../Dom/Chan
                 const fragment = document.createDocumentFragment();
                 this.items.map((item) => item.getElement()).forEach((element) => fragment.appendChild(element));
                 body.classList.remove("userMenuProviderBodyPlaceholder");
-                body.appendChild(fragment);
+                const itemContainer = document.createElement("div");
+                itemContainer.classList.add("userMenuProviderItemContainer");
+                itemContainer.setAttribute("role", "grid");
+                itemContainer.appendChild(fragment);
+                body.appendChild(itemContainer);
                 Listener_1.default.trigger();
             }
         }

@@ -15,6 +15,7 @@
 
 .userMenuProviderTitle {
     flex: 1 auto;
+    outline: none;
     overflow: hidden;
     padding: 10px;
     text-overflow: ellipsis;
@@ -52,34 +53,40 @@
 }
 
 .userMenuProviderItem {
+    position: relative;
+}
+
+.userMenuProviderItemOutstanding {
+    .userMenuProviderItemText {
+        color: $wcfContentText;
+    }
+
+    .userMenuProviderItemMeta::after {
+        background-color: rgb(49, 138, 220);
+        border-radius: 50%;
+        content: "";
+        display: inline-block;
+        height: 8px;
+        margin-left: 5px;
+        width: 9px;
+    }
+
+    .userMenuProviderItemMarkAsRead {
+        visibility: visible;
+    }
+}
+
+.userMenuProviderItemLink {
     display: grid;
     grid-template-areas:
-        "image text markAsRead"
-        "image meta markAsRead";
-    grid-template-columns: min-content 1fr min-content;
-    padding: 10px 0 10px 10px;
+        "image text"
+        "image meta";
+    grid-template-columns: min-content 1fr;
+    padding: 10px 44px 10px 10px;
     position: relative;
     row-gap: 5px;
-
-    &.userMenuProviderItemOutstanding {
-        .userMenuProviderItemText {
-            color: $wcfContentText;
-        }
-
-        .userMenuProviderItemMeta::after {
-            background-color: rgb(49, 138, 220);
-            border-radius: 50%;
-            content: "";
-            display: inline-block;
-            height: 8px;
-            margin-left: 5px;
-            width: 9px;
-        }
-
-        .userMenuProviderItemMarkAsRead {
-            visibility: visible;
-        }
-    }
+    user-select: none;
+    -webkit-user-select: none;
 }
 
 .userMenuProviderItemImage {
@@ -106,8 +113,12 @@
 .userMenuProviderItemMarkAsRead {
     align-items: center;
     display: flex;
-    grid-area: markAsRead;
+    height: 44px;
     justify-content: center;
+    position: absolute;
+    right: 0;
+    top: 50%;
+    transform: translateY(-22px);
     visibility: hidden;
     width: 44px;
 
@@ -139,7 +150,7 @@ html:not(.touch) {
         }
     }
 
-    .userMenuProviderItem:hover {
+    .userMenuProviderItemLink:hover {
         background-color: $wcfTabularBoxBackgroundActive;
     }
 

@@ -28,33 +28,46 @@ export class Item {
   private render(): HTMLElement {
     const item = document.createElement("div");
     item.classList.add("userMenuProviderItem");
+    item.setAttribute("role", "row");
+
+    const content = document.createElement("div");
+    content.setAttribute("role", "gridcell");
+    item.appendChild(content);
+
+    const link = document.createElement("a");
+    link.classList.add("userMenuProviderItemLink");
+    link.href = this.data.link;
+    link.tabIndex = 0;
+    content.appendChild(link);
 
     const image = this.renderImage();
     image.classList.add("userMenuProviderItemImage");
-    item.appendChild(image);
+    link.appendChild(image);
 
     const text = document.createElement("div");
     text.classList.add("userMenuProviderItemText");
     text.innerHTML = this.data.text;
-    item.appendChild(text);
-
-    const markAsRead = document.createElement("div");
-    markAsRead.classList.add("userMenuProviderItemMarkAsRead");
-    this.markAsReadIcon = document.createElement("span");
-    this.markAsReadIcon.classList.add("icon", "icon16", "fa-check");
-    markAsRead.appendChild(this.markAsReadIcon);
-    markAsRead.addEventListener("click", (event) => this.markAsRead(event));
-    item.appendChild(markAsRead);
+    link.appendChild(text);
 
     const date = new Date(this.data.time * 1_000);
     const time = getTimeElement(date);
     time.classList.add("userMenuProviderItemMeta");
-    item.appendChild(time);
+    link.appendChild(time);
 
-    const link = document.createElement("a");
-    link.classList.add("userMenuProviderItemShadow");
-    link.href = this.data.link;
-    item.appendChild(link);
+    const interaction = document.createElement("div");
+    interaction.setAttribute("role", "gridcell");
+    item.appendChild(interaction);
+
+    const markAsRead = document.createElement("span");
+    markAsRead.classList.add("userMenuProviderItemMarkAsRead");
+    markAsRead.addEventListener("click", (event) => this.markAsRead(event));
+    markAsRead.tabIndex = 0;
+    markAsRead.setAttribute("role", "button");
+    interaction.appendChild(markAsRead);
+
+    this.markAsReadIcon = document.createElement("span");
+    this.markAsReadIcon.classList.add("icon", "icon16", "fa-check");
+    markAsRead.appendChild(this.markAsReadIcon);
 
     return item;
   }

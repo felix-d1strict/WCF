@@ -16,10 +16,14 @@ export class NotificationProvider {
   private placeholderEmpty?: HTMLElement = undefined;
   private placeholderLoading?: HTMLElement = undefined;
   private state: State = State.Idle;
+  private tabIndex = -1;
+  private title?: HTMLElement = undefined;
 
   constructor() {
     this.button = document.querySelector("#userNotifications > a") as HTMLAnchorElement;
     this.button.addEventListener("click", (event) => this.click(event));
+    this.button.tabIndex = 0;
+    this.button.setAttribute("role", "button");
   }
 
   private click(event: MouseEvent): void {
@@ -37,10 +41,12 @@ export class NotificationProvider {
 
     this.container = document.createElement("div");
     this.container.classList.add("userMenuProvider");
+    this.container.setAttribute("role", "dialog");
 
     // TODO: This prevents the dialog from closing via unintentional clicks, but
     // will also prevent the options drop-down menu from being closed.
     this.container.addEventListener("click", (event) => event.stopPropagation());
+    this.container.addEventListener("keydown", (event) => this.keydown(event));
 
     const header = this.buildHeader();
     this.container.appendChild(header);
@@ -49,21 +55,66 @@ export class NotificationProvider {
     this.container.appendChild(this.body);
   }
 
+  private keydown(event: KeyboardEvent): void {
+    if (event.key === "Escape") {
+      // TODO: The signature of the `close()` method is awful.
+      this.close(this.container!, this.button!);
+      this.button!.focus();
+    }
+
+    if (event.key === "Tab") {
+      event.preventDefault();
+      event.stopPropagation();
+
+      let element: HTMLElement | null;
+      if (event.shiftKey) {
+        element = this.getPreviousFocusableElement();
+      } else {
+        element = this.getNextFocusableElement();
+      }
+
+      if (element) {
+        element.focus();
+      }
+    }
+  }
+
+  private getFocusableElements(): HTMLElement[] {
+    return Array.from(
+      this.container!.querySelectorAll('[tabindex]:not([tabindex^="-"]):not([inert])'),
+    ) as HTMLElement[];
+  }
+
+  private getNextFocusableElement(): HTMLElement | null {
+    const elements = this.getFocusableElements();
+
+    this.tabIndex++;
+    if (this.tabIndex === elements.length) {
+      this.tabIndex = 0;
+    }
+
+    return elements[this.tabIndex] || null;
+  }
+
+  private getPreviousFocusableElement(): HTMLElement | null {
+    const elements = this.getFocusableElements();
+
+    this.tabIndex--;
+    if (this.tabIndex < 0) {
+      this.tabIndex = elements.length - 1;
+    }
+
+    return elements[this.tabIndex] || null;
+  }
+
   private toggle(): void {
-    const identifier = "WoltLabSuite/Core/Ui/User/Menu/Provider";
     const listItem = this.button.parentElement!;
 
     const container = this.container!;
     if (container.parentElement !== null) {
       this.close(container, listItem);
-
-      UiCloseOverlay.remove(identifier);
     } else {
       this.open(container, listItem);
-
-      UiCloseOverlay.add(identifier, () => {
-        this.close(container, listItem);
-      });
     }
   }
 
@@ -74,22 +125,34 @@ export class NotificationProvider {
     this.render();
 
     UiAlignment.set(container, this.button, { horizontal: "center" });
+
+    this.title!.focus();
+
+    const identifier = "WoltLabSuite/Core/Ui/User/Menu/Provider";
+    UiCloseOverlay.add(identifier, () => {
+      this.close(container, listItem);
+    });
   }
 
   private close(container: HTMLElement, listItem: HTMLElement): void {
     listItem.classList.remove("open");
 
     container.remove();
+
+    const identifier = "WoltLabSuite/Core/Ui/User/Menu/Provider";
+    UiCloseOverlay.remove(identifier);
   }
 
   private buildHeader(): HTMLElement {
     const header = document.createElement("div");
     header.classList.add("userMenuProviderHeader");
 
-    const title = document.createElement("span");
-    title.classList.add("userMenuProviderTitle");
-    title.textContent = "Notifications";
-    header.appendChild(title);
+    this.title = document.createElement("span");
+    this.title.classList.add("userMenuProviderTitle");
+    this.title.textContent = "Notifications";
+    this.title.tabIndex = -1;
+    this.container!.setAttribute("aria-label", "Notifications");
+    header.appendChild(this.title);
 
     const optionContainer = document.createElement("div");
     optionContainer.classList.add("userMenuProviderOptionContainer", "dropdown");
@@ -98,6 +161,8 @@ export class NotificationProvider {
     const options = document.createElement("span");
     options.classList.add("userMenuProviderOptions", "dropdownToggle");
     options.innerHTML = '<span class="icon icon24 fa-ellipsis-h"></span>';
+    options.tabIndex = 0;
+    options.setAttribute("role", "button");
     optionContainer.appendChild(options);
 
     const optionMenu = document.createElement("ul");
@@ -117,7 +182,7 @@ export class NotificationProvider {
     this.options.set(
       "markAllAsRead",
       new Option({
-        click: (option: Option) => {},
+        click: (_option: Option) => {},
         label: "Mark all as read",
       }),
     );
@@ -220,7 +285,13 @@ export class NotificationProvider {
       const fragment = document.createDocumentFragment();
       this.items.map((item) => item.getElement()).forEach((element) => fragment.appendChild(element));
       body.classList.remove("userMenuProviderBodyPlaceholder");
-      body.appendChild(fragment);
+
+      const itemContainer = document.createElement("div");
+      itemContainer.classList.add("userMenuProviderItemContainer");
+      itemContainer.setAttribute("role", "grid");
+      itemContainer.appendChild(fragment);
+
+      body.appendChild(itemContainer);
 
       DomChangeListener.trigger();
     }
