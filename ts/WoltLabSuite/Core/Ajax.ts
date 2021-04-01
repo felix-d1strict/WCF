@@ -108,7 +108,7 @@ export async function simpleApi(options: SimpleRequestOptions): Promise<unknown>
       failure() {
         reject();
 
-        return false;
+        return true;
       },
     });
   });

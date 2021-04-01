@@ -4,7 +4,8 @@ import * as UiAlignment from "../../../Alignment";
 import UiCloseOverlay from "../../../CloseOverlay";
 import { NotificationAction } from "../../../Dropdown/Data";
 import UiDropdownSimple from "../../../Dropdown/Simple";
-import Item, { CallbackMarkAsRead, ItemData } from "./Item";
+import Item, { ItemData } from "./Item";
+import ItemList from "./ItemList";
 import Option from "./Option";
 
 export class NotificationProvider {
@@ -12,6 +13,7 @@ export class NotificationProvider {
   private readonly button: HTMLAnchorElement;
   private container?: HTMLElement = undefined;
   private items: Item[] = [];
+  private itemList?: ItemList = undefined;
   private readonly options = new Map<string, Option>();
   private placeholderEmpty?: HTMLElement = undefined;
   private placeholderLoading?: HTMLElement = undefined;
@@ -254,8 +256,18 @@ export class NotificationProvider {
       return;
     }
 
-    const callbackMarkAsRead: CallbackMarkAsRead = (objectId) => this.markAsRead(objectId);
-    this.items = data.map((itemData) => new Item(itemData, callbackMarkAsRead));
+    if (!this.itemList) {
+      const options: Option[] = [
+        new Option({ label: "Mark as Read", click: (option: Option) => {} }),
+        new Option({ label: "Disable this type of notification", link: "#" }),
+      ];
+      this.itemList = new ItemList(options);
+    }
+
+    this.itemList.setItems(data);
+
+    /*const callbackMarkAsRead: CallbackMarkAsRead = (objectId) => this.markAsRead(objectId);
+    this.items = data.map((itemData) => new Item(itemData, callbackMarkAsRead));*/
 
     this.state = State.Ready;
 
@@ -279,19 +291,14 @@ export class NotificationProvider {
     const body = this.body!;
     body.innerHTML = "";
 
-    if (this.items.length === 0) {
+    const itemList = this.itemList!;
+    if (!itemList.hasItems()) {
       this.showPlaceholderEmpty();
     } else {
-      const fragment = document.createDocumentFragment();
-      this.items.map((item) => item.getElement()).forEach((element) => fragment.appendChild(element));
+      const element = itemList.getElement();
+
       body.classList.remove("userMenuProviderBodyPlaceholder");
-
-      const itemContainer = document.createElement("div");
-      itemContainer.classList.add("userMenuProviderItemContainer");
-      itemContainer.setAttribute("role", "grid");
-      itemContainer.appendChild(fragment);
-
-      body.appendChild(itemContainer);
+      body.appendChild(element);
 
       DomChangeListener.trigger();
     }

@@ -3,6 +3,7 @@
 namespace wcf\data\user\notification;
 
 use wcf\data\AbstractDatabaseObjectAction;
+use wcf\system\database\util\PreparedStatementConditionBuilder;
 use wcf\system\exception\PermissionDeniedException;
 use wcf\system\request\LinkHandler;
 use wcf\system\user\notification\event\IUserNotificationEvent;
@@ -195,6 +196,29 @@ class UserNotificationAction extends AbstractDatabaseObjectAction
     public function getOutstandingNotifications()
     {
         $notifications = UserNotificationHandler::getInstance()->getMixedNotifications();
+        $eventSettings = [];
+        foreach ($notifications['notifications'] as $notification) {
+            /** @var IUserNotificationEvent $event */
+            $event = $notification['event'];
+            $eventSettings[$event->getNotification()->eventID] = false;
+        }
+
+        if (empty($eventSettings)) {
+            return [];
+        }
+
+        $conditions = new PreparedStatementConditionBuilder();
+        $conditions->add("userID = ?", [WCF::getUser()->userID]);
+        $conditions->add("eventID IN (?)", [\array_keys($eventSettings)]);
+        $sql = "SELECT  eventID
+                FROM    wcf" . WCF_N . "_user_notification_event_to_user
+                WHERE   userID = ?";
+        $statement = WCF::getDB()->prepareStatement($sql);
+        $statement->execute([WCF::getUser()->userID]);
+        while ($eventID = $statement->fetchColumn()) {
+            $eventSettings[$eventID] = true;
+        }
+
         $data = [];
         foreach ($notifications['notifications'] as $notification) {
             /** @var IUserNotificationEvent $event */
@@ -208,12 +232,19 @@ class UserNotificationAction extends AbstractDatabaseObjectAction
                 $link = LinkHandler::getInstance()->getLink('NotificationConfirm', ['id' => $notificationID]);
             }
 
+            $eventID = $event->getNotification()->eventID;
             $itemData = [
                 'isConfirmed' => $event->isConfirmed(),
                 'link' => $link,
                 'objectId' => $notificationID,
                 'text' => $event->getMessage(),
                 'time' => $notification['time'],
+                'meta' => [
+                    'notification' => [
+                        'eventID' => $eventID,
+                        'enabled' => $eventSettings[$eventID],
+                    ],
+                ],
             ];
 
             if (count($event->getAuthors()) > 1) {

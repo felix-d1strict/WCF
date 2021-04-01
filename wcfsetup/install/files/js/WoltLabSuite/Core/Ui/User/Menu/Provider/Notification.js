@@ -1,4 +1,4 @@
-define(["require", "exports", "tslib", "../../../../Ajax", "../../../../Dom/Change/Listener", "../../../Alignment", "../../../CloseOverlay", "../../../Dropdown/Simple", "./Item", "./Option"], function (require, exports, tslib_1, Ajax, Listener_1, UiAlignment, CloseOverlay_1, Simple_1, Item_1, Option_1) {
+define(["require", "exports", "tslib", "../../../../Ajax", "../../../../Dom/Change/Listener", "../../../Alignment", "../../../CloseOverlay", "../../../Dropdown/Simple", "./ItemList", "./Option"], function (require, exports, tslib_1, Ajax, Listener_1, UiAlignment, CloseOverlay_1, Simple_1, ItemList_1, Option_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.NotificationProvider = void 0;
@@ -7,13 +7,14 @@ define(["require", "exports", "tslib", "../../../../Ajax", "../../../../Dom/Chan
     UiAlignment = tslib_1.__importStar(UiAlignment);
     CloseOverlay_1 = tslib_1.__importDefault(CloseOverlay_1);
     Simple_1 = tslib_1.__importDefault(Simple_1);
-    Item_1 = tslib_1.__importDefault(Item_1);
+    ItemList_1 = tslib_1.__importDefault(ItemList_1);
     Option_1 = tslib_1.__importDefault(Option_1);
     class NotificationProvider {
         constructor() {
             this.body = undefined;
             this.container = undefined;
             this.items = [];
+            this.itemList = undefined;
             this.options = new Map();
             this.placeholderEmpty = undefined;
             this.placeholderLoading = undefined;
@@ -198,8 +199,16 @@ define(["require", "exports", "tslib", "../../../../Ajax", "../../../../Dom/Chan
                 this.state = 3 /* Failure */;
                 return;
             }
-            const callbackMarkAsRead = (objectId) => this.markAsRead(objectId);
-            this.items = data.map((itemData) => new Item_1.default(itemData, callbackMarkAsRead));
+            if (!this.itemList) {
+                const options = [
+                    new Option_1.default({ label: "Mark as Read", click: (option) => { } }),
+                    new Option_1.default({ label: "Disable this type of notification", link: "#" }),
+                ];
+                this.itemList = new ItemList_1.default(options);
+            }
+            this.itemList.setItems(data);
+            /*const callbackMarkAsRead: CallbackMarkAsRead = (objectId) => this.markAsRead(objectId);
+            this.items = data.map((itemData) => new Item(itemData, callbackMarkAsRead));*/
             this.state = 2 /* Ready */;
             this.render();
         }
@@ -217,18 +226,14 @@ define(["require", "exports", "tslib", "../../../../Ajax", "../../../../Dom/Chan
         showContent() {
             const body = this.body;
             body.innerHTML = "";
-            if (this.items.length === 0) {
+            const itemList = this.itemList;
+            if (!itemList.hasItems()) {
                 this.showPlaceholderEmpty();
             }
             else {
-                const fragment = document.createDocumentFragment();
-                this.items.map((item) => item.getElement()).forEach((element) => fragment.appendChild(element));
+                const element = itemList.getElement();
                 body.classList.remove("userMenuProviderBodyPlaceholder");
-                const itemContainer = document.createElement("div");
-                itemContainer.classList.add("userMenuProviderItemContainer");
-                itemContainer.setAttribute("role", "grid");
-                itemContainer.appendChild(fragment);
-                body.appendChild(itemContainer);
+                body.appendChild(element);
                 Listener_1.default.trigger();
             }
         }

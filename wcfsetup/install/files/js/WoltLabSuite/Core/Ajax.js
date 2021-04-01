@@ -83,7 +83,7 @@ define(["require", "exports", "tslib", "./Ajax/Request"], function (require, exp
                     resolve(data);
                 }, failure() {
                     reject();
-                    return false;
+                    return true;
                 } }));
         });
     }

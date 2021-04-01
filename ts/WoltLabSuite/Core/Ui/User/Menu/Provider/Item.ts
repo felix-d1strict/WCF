@@ -1,14 +1,15 @@
 import { getTimeElement } from "../../../../Date/Util";
 
 export class Item {
-  private readonly callbackMarkAsRead: CallbackMarkAsRead;
+  private buttonOptions?: HTMLElement = undefined;
+  private readonly callbackToggleOptions: CallbackToggleOptions;
   private readonly data: ItemData;
   private element?: HTMLElement = undefined;
   private markAsReadIcon?: HTMLSpanElement = undefined;
 
-  constructor(data: ItemData, callbackMarkAsRead: CallbackMarkAsRead) {
+  constructor(data: ItemData, options: ItemOptions) {
     this.data = data;
-    this.callbackMarkAsRead = callbackMarkAsRead;
+    this.callbackToggleOptions = options.callbackToggleOptions;
   }
 
   getElement(): HTMLElement {
@@ -25,6 +26,14 @@ export class Item {
     return this.data.isConfirmed;
   }
 
+  getMetaData(): MetaData {
+    return this.data.meta;
+  }
+
+  getOptionButton(): HTMLElement {
+    return this.buttonOptions!;
+  }
+
   private render(): HTMLElement {
     const item = document.createElement("div");
     item.classList.add("userMenuProviderItem");
@@ -37,7 +46,7 @@ export class Item {
     const link = document.createElement("a");
     link.classList.add("userMenuProviderItemLink");
     link.href = this.data.link;
-    link.tabIndex = 0;
+    link.tabIndex = -1;
     content.appendChild(link);
 
     const image = this.renderImage();
@@ -59,14 +68,15 @@ export class Item {
     item.appendChild(interaction);
 
     const markAsRead = document.createElement("span");
-    markAsRead.classList.add("userMenuProviderItemMarkAsRead");
-    markAsRead.addEventListener("click", (event) => this.markAsRead(event));
-    markAsRead.tabIndex = 0;
+    markAsRead.classList.add("userMenuProviderItemOptions");
+    markAsRead.addEventListener("click", (event) => this.callbackToggleOptions(this));
+    markAsRead.tabIndex = -1;
     markAsRead.setAttribute("role", "button");
+    this.buttonOptions = markAsRead;
     interaction.appendChild(markAsRead);
 
     this.markAsReadIcon = document.createElement("span");
-    this.markAsReadIcon.classList.add("icon", "icon16", "fa-check");
+    this.markAsReadIcon.classList.add("icon", "icon24", "fa-ellipsis-h");
     markAsRead.appendChild(this.markAsReadIcon);
 
     return item;
@@ -97,6 +107,7 @@ export class Item {
     }
   }
 
+  /*
   private async markAsRead(event: MouseEvent): Promise<void> {
     event.preventDefault();
     event.stopPropagation();
@@ -106,7 +117,7 @@ export class Item {
       return;
     }
 
-    icon.classList.replace("fa-check", "fa-spinner");
+    icon.classList.replace("fa-ellipsis-h", "fa-spinner");
 
     try {
       await this.callbackMarkAsRead(this.data.objectId);
@@ -114,10 +125,13 @@ export class Item {
       this.data.isConfirmed = true;
       this.rebuild();
     } finally {
-      icon.classList.replace("fa-spinner", "fa-check");
+      icon.classList.replace("fa-spinner", "fa-ellipsis-h");
     }
   }
+  */
 }
+
+type MetaData = Record<string, unknown>;
 
 export interface ItemIcon {
   className: string;
@@ -133,11 +147,16 @@ export interface ItemData {
   image: ItemIcon | ItemImage;
   isConfirmed: boolean;
   link: string;
+  meta: MetaData;
   objectId: number;
   text: string;
   time: number;
 }
 
-export type CallbackMarkAsRead = (objectId: number) => Promise<void>;
+export interface ItemOptions {
+  callbackToggleOptions: CallbackToggleOptions;
+}
+
+export type CallbackToggleOptions = (item: Item) => void;
 
 export default Item;

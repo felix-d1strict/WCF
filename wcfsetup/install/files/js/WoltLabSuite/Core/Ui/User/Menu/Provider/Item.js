@@ -3,11 +3,12 @@ define(["require", "exports", "../../../../Date/Util"], function (require, expor
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.Item = void 0;
     class Item {
-        constructor(data, callbackMarkAsRead) {
+        constructor(data, options) {
+            this.buttonOptions = undefined;
             this.element = undefined;
             this.markAsReadIcon = undefined;
             this.data = data;
-            this.callbackMarkAsRead = callbackMarkAsRead;
+            this.callbackToggleOptions = options.callbackToggleOptions;
         }
         getElement() {
             if (!this.element) {
@@ -19,6 +20,12 @@ define(["require", "exports", "../../../../Date/Util"], function (require, expor
         isConfirmed() {
             return this.data.isConfirmed;
         }
+        getMetaData() {
+            return this.data.meta;
+        }
+        getOptionButton() {
+            return this.buttonOptions;
+        }
         render() {
             const item = document.createElement("div");
             item.classList.add("userMenuProviderItem");
@@ -29,7 +36,7 @@ define(["require", "exports", "../../../../Date/Util"], function (require, expor
             const link = document.createElement("a");
             link.classList.add("userMenuProviderItemLink");
             link.href = this.data.link;
-            link.tabIndex = 0;
+            link.tabIndex = -1;
             content.appendChild(link);
             const image = this.renderImage();
             image.classList.add("userMenuProviderItemImage");
@@ -46,13 +53,14 @@ define(["require", "exports", "../../../../Date/Util"], function (require, expor
             interaction.setAttribute("role", "gridcell");
             item.appendChild(interaction);
             const markAsRead = document.createElement("span");
-            markAsRead.classList.add("userMenuProviderItemMarkAsRead");
-            markAsRead.addEventListener("click", (event) => this.markAsRead(event));
-            markAsRead.tabIndex = 0;
+            markAsRead.classList.add("userMenuProviderItemOptions");
+            markAsRead.addEventListener("click", (event) => this.callbackToggleOptions(this));
+            markAsRead.tabIndex = -1;
             markAsRead.setAttribute("role", "button");
+            this.buttonOptions = markAsRead;
             interaction.appendChild(markAsRead);
             this.markAsReadIcon = document.createElement("span");
-            this.markAsReadIcon.classList.add("icon", "icon16", "fa-check");
+            this.markAsReadIcon.classList.add("icon", "icon24", "fa-ellipsis-h");
             markAsRead.appendChild(this.markAsReadIcon);
             return item;
         }
@@ -76,23 +84,6 @@ define(["require", "exports", "../../../../Date/Util"], function (require, expor
             }
             else {
                 element.classList.add("userMenuProviderItemOutstanding");
-            }
-        }
-        async markAsRead(event) {
-            event.preventDefault();
-            event.stopPropagation();
-            const icon = this.markAsReadIcon;
-            if (icon.classList.contains("fa-spinner")) {
-                return;
-            }
-            icon.classList.replace("fa-check", "fa-spinner");
-            try {
-                await this.callbackMarkAsRead(this.data.objectId);
-                this.data.isConfirmed = true;
-                this.rebuild();
-            }
-            finally {
-                icon.classList.replace("fa-spinner", "fa-check");
             }
         }
     }
