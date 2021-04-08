@@ -8,24 +8,35 @@ import Item, { ItemData } from "./Item";
 import ItemList from "./ItemList";
 import Option from "./Option";
 
+type LinkData = Record<"label" | "link", string>;
+
+interface NotificationProviderOptions {
+  itemLinks: Map<string, string>;
+  links: Map<string, LinkData>;
+  placeholderEmpty: string;
+  title: string;
+}
+
 export class NotificationProvider {
   private body?: HTMLElement = undefined;
   private readonly button: HTMLAnchorElement;
   private container?: HTMLElement = undefined;
-  private items: Item[] = [];
   private itemList?: ItemList = undefined;
-  private readonly options = new Map<string, Option>();
+  private readonly options: NotificationProviderOptions;
   private placeholderEmpty?: HTMLElement = undefined;
   private placeholderLoading?: HTMLElement = undefined;
+  private readonly providerOptions: Option[] = [];
   private state: State = State.Idle;
   private tabIndex = -1;
   private title?: HTMLElement = undefined;
 
-  constructor() {
+  constructor(options: NotificationProviderOptions) {
     this.button = document.querySelector("#userNotifications > a") as HTMLAnchorElement;
     this.button.addEventListener("click", (event) => this.click(event));
     this.button.tabIndex = 0;
     this.button.setAttribute("role", "button");
+
+    this.options = options;
   }
 
   private click(event: MouseEvent): void {
@@ -45,9 +56,11 @@ export class NotificationProvider {
     this.container.classList.add("userMenuProvider");
     this.container.setAttribute("role", "dialog");
 
-    // TODO: This prevents the dialog from closing via unintentional clicks, but
-    // will also prevent the options drop-down menu from being closed.
-    this.container.addEventListener("click", (event) => event.stopPropagation());
+    this.container.addEventListener("click", (event) => {
+      event.stopPropagation();
+
+      UiDropdownSimple.closeAll();
+    });
     this.container.addEventListener("keydown", (event) => this.keydown(event));
 
     const header = this.buildHeader();
@@ -151,9 +164,9 @@ export class NotificationProvider {
 
     this.title = document.createElement("span");
     this.title.classList.add("userMenuProviderTitle");
-    this.title.textContent = "Notifications";
+    this.title.textContent = this.options.title;
     this.title.tabIndex = -1;
-    this.container!.setAttribute("aria-label", "Notifications");
+    this.container!.setAttribute("aria-label", this.options.title);
     header.appendChild(this.title);
 
     const optionContainer = document.createElement("div");
@@ -181,20 +194,14 @@ export class NotificationProvider {
   }
 
   private buildOptions(): DocumentFragment {
-    this.options.set(
-      "markAllAsRead",
-      new Option({
-        click: (_option: Option) => {},
-        label: "Mark all as read",
-      }),
-    );
+    this.providerOptions.push(new Option("markAllAsRead", "TODO: Mark all as read", (_option: Option) => {}));
 
-    this.options.set("settings", new Option({ label: "Notification Settings", link: "#" }));
-
-    this.options.set("showAll", new Option({ label: "Show All Notifications", link: "#" }));
+    this.options.links.forEach((data, identifier) => {
+      this.providerOptions.push(new Option(identifier, data.link, (_option: Option) => {}));
+    });
 
     const fragment = document.createDocumentFragment();
-    this.options.forEach((option) => {
+    this.providerOptions.forEach((option) => {
       fragment.appendChild(option.getElement());
     });
 
@@ -206,8 +213,8 @@ export class NotificationProvider {
       return;
     }
 
-    const markAllAsRead = this.options.get("markAllAsRead")!;
-    if (this.items.some((item) => !item.isConfirmed())) {
+    const markAllAsRead = this.providerOptions.find((option) => option.identifier === "markAllAsRead")!;
+    if (this.itemList!.hasItems()) {
       markAllAsRead.show();
     } else {
       markAllAsRead.hide();
@@ -257,21 +264,67 @@ export class NotificationProvider {
     }
 
     if (!this.itemList) {
-      const options: Option[] = [
-        new Option({ label: "Mark as Read", click: (option: Option) => {} }),
-        new Option({ label: "Disable this type of notification", link: "#" }),
+      const callbackClick = (option: Option) => {
+        void this.callbackItemOptionSelect(this.itemList!.getActiveItem()!, option);
+
+        UiDropdownSimple.closeAll();
+      };
+      const options = [
+        new Option("markAsRead", "TODO: Mark as read", callbackClick),
+        new Option("enable", "TODO: Enable notification", callbackClick),
+        new Option("disable", "TODO: Disable notification", callbackClick),
       ];
-      this.itemList = new ItemList(options);
+      this.itemList = new ItemList({
+        callbackItemOptionsToggle: (item, options) => this.callbackItemOptionsToggle(item, options),
+        itemOptions: options,
+      });
     }
 
     this.itemList.setItems(data);
 
-    /*const callbackMarkAsRead: CallbackMarkAsRead = (objectId) => this.markAsRead(objectId);
-    this.items = data.map((itemData) => new Item(itemData, callbackMarkAsRead));*/
-
     this.state = State.Ready;
 
     this.render();
+  }
+
+  private async callbackItemOptionSelect(item: Item, option: Option): Promise<void> {
+    item.setIsBusy(true);
+
+    switch (option.identifier) {
+      case "markAsRead":
+        await this.markAsRead(item);
+        break;
+
+      default:
+        console.log("Click", item, option);
+        break;
+    }
+
+    item.setIsBusy(false);
+  }
+
+  private callbackItemOptionsToggle(item: Item, options: Option[]): void {
+    options.forEach((option) => {
+      switch (option.identifier) {
+        case "markAsRead":
+          if (item.isConfirmed()) {
+            option.hide();
+          } else {
+            option.show();
+          }
+          break;
+
+        case "enable":
+          // TODO: Hard-coded!
+          option.hide();
+          break;
+
+        case "disable":
+          // TODO: Hard-coded!
+          option.show();
+          break;
+      }
+    });
   }
 
   private showPlaceholderLoading(): void {
@@ -328,15 +381,17 @@ export class NotificationProvider {
     return data.returnValues;
   }
 
-  private async markAsRead(objectId: number): Promise<void> {
+  private async markAsRead(item: Item): Promise<void> {
     await Ajax.simpleApi({
       data: {
         actionName: "markAsConfirmed",
         className: "wcf\\data\\user\\notification\\UserNotificationAction",
-        objectIDs: [objectId],
+        objectIDs: [item.getObjectId()],
       },
       silent: true,
     });
+
+    item.markAsConfirmed();
   }
 }
 

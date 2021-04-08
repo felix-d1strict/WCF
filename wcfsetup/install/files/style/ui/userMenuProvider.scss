@@ -56,7 +56,7 @@
     position: relative;
 }
 
-.userMenuProviderItemOutstanding {
+.userMenuProviderItem[data-is-confirmed="false"] {
     .userMenuProviderItemText {
         color: $wcfContentText;
     }
@@ -122,6 +122,15 @@
     .icon {
         color: inherit;
     }
+
+    &.active {
+        color: $wcfContentText;
+        visibility: visible;
+    }
+}
+
+.userMenuProviderItem[data-is-busy="true"] .userMenuProviderItemOptions {
+    pointer-events: none;
 }
 
 .userMenuProviderItemShadow {
@@ -157,12 +166,12 @@ html:not(.touch) {
         }
     }
 
-    .userMenuProviderItemLink:focus {
+    .userMenuProviderItemLink.focus-visible:focus {
         background-color: $wcfTabularBoxBackgroundActive;
         color: $wcfContentText;
     }
 
-    .userMenuProviderItemOptions:focus {
+    .userMenuProviderItemOptions.focus-visible:focus {
         visibility: visible;
     }
 
@@ -173,7 +182,7 @@ html:not(.touch) {
             color: $wcfContentText;
         }
 
-        &:focus {
+        &.focus-visible:focus {
             color: $wcfContentText;
             visibility: visible;
         }

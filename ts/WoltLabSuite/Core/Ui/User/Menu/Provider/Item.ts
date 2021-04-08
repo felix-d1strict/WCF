@@ -5,6 +5,7 @@ export class Item {
   private readonly callbackToggleOptions: CallbackToggleOptions;
   private readonly data: ItemData;
   private element?: HTMLElement = undefined;
+  private isBusy = false;
   private markAsReadIcon?: HTMLSpanElement = undefined;
 
   constructor(data: ItemData, options: ItemOptions) {
@@ -32,6 +33,22 @@ export class Item {
 
   getOptionButton(): HTMLElement {
     return this.buttonOptions!;
+  }
+
+  getObjectId(): number {
+    return this.data.objectId;
+  }
+
+  markAsConfirmed(): void {
+    this.data.isConfirmed = true;
+
+    this.rebuild();
+  }
+
+  setIsBusy(isBusy: boolean): void {
+    this.isBusy = isBusy;
+
+    this.rebuild();
   }
 
   private render(): HTMLElement {
@@ -69,7 +86,12 @@ export class Item {
 
     const markAsRead = document.createElement("span");
     markAsRead.classList.add("userMenuProviderItemOptions");
-    markAsRead.addEventListener("click", (event) => this.callbackToggleOptions(this));
+    markAsRead.addEventListener("click", (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+
+      this.callbackToggleOptions(this);
+    });
     markAsRead.tabIndex = -1;
     markAsRead.setAttribute("role", "button");
     this.buttonOptions = markAsRead;
@@ -101,34 +123,20 @@ export class Item {
     const element = this.element!;
 
     if (this.data.isConfirmed) {
-      element.classList.remove("userMenuProviderItemOutstanding");
+      element.dataset.isConfirmed = "true";
     } else {
-      element.classList.add("userMenuProviderItemOutstanding");
+      element.dataset.isConfirmed = "false";
+    }
+
+    const optionIcon = this.getOptionButton().querySelector(".icon") as HTMLSpanElement;
+    if (this.isBusy) {
+      element.dataset.isBusy = "true";
+      optionIcon.classList.replace("fa-ellipsis-h", "fa-spinner");
+    } else {
+      element.dataset.isBusy = "false";
+      optionIcon.classList.replace("fa-spinner", "fa-ellipsis-h");
     }
   }
-
-  /*
-  private async markAsRead(event: MouseEvent): Promise<void> {
-    event.preventDefault();
-    event.stopPropagation();
-
-    const icon = this.markAsReadIcon!;
-    if (icon.classList.contains("fa-spinner")) {
-      return;
-    }
-
-    icon.classList.replace("fa-ellipsis-h", "fa-spinner");
-
-    try {
-      await this.callbackMarkAsRead(this.data.objectId);
-
-      this.data.isConfirmed = true;
-      this.rebuild();
-    } finally {
-      icon.classList.replace("fa-spinner", "fa-ellipsis-h");
-    }
-  }
-  */
 }
 
 type MetaData = Record<string, unknown>;

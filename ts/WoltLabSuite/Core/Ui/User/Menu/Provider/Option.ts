@@ -1,12 +1,18 @@
 import DomUtil from "../../../../Dom/Util";
 
+export type CallbackClick = (option: Option) => void;
+
 export class Option {
+  readonly identifier: string;
+  private readonly callbackClick: CallbackClick;
   private element?: HTMLLIElement = undefined;
-  private readonly data: OptionData;
+  private readonly label: string;
   private visible = true;
 
-  constructor(data: OptionData) {
-    this.data = data;
+  constructor(identifier: string, label: string, callbackClick: CallbackClick) {
+    this.callbackClick = callbackClick;
+    this.identifier = identifier;
+    this.label = label;
   }
 
   show(): void {
@@ -35,17 +41,14 @@ export class Option {
     const listItem = document.createElement("li");
 
     const link = document.createElement("a");
-    link.textContent = this.data.label;
-    if (this.data.link) {
-      link.href = this.data.link;
-    } else {
-      link.href = "#";
-      link.addEventListener("click", (event) => {
-        event.preventDefault();
+    link.textContent = this.label;
+    link.href = "#";
+    link.addEventListener("click", (event) => {
+      event.preventDefault();
+      event.stopPropagation();
 
-        this.data.click!(this);
-      });
-    }
+      this.callbackClick(this);
+    });
     listItem.appendChild(link);
 
     return listItem;
@@ -61,20 +64,5 @@ export class Option {
     }
   }
 }
-
-type CallbackClick = (option: Option) => void;
-
-interface OptionButton {
-  click: CallbackClick;
-  label: string;
-  link?: never;
-}
-interface OptionLink {
-  click?: never;
-  label: string;
-  link: string;
-}
-
-export type OptionData = OptionButton | OptionLink;
 
 export default Option;

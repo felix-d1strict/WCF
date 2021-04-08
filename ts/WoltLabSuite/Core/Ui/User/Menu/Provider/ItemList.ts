@@ -1,31 +1,33 @@
 import Item, { ItemData } from "./Item";
 import Option from "./Option";
-import { init as initDropdown, toggleDropdown } from "../../../Dropdown/Reusable";
+import * as DropDown from "../../../Dropdown/Reusable";
+import { NotificationAction } from "../../../Dropdown/Data";
 
 let _counter = 0;
 
+type Position = Record<"row" | "column", number>;
+
+export type CallbackItemOptionsToggle = (item: Item, options: Option[]) => void;
+
+interface ItemListOptions {
+  callbackItemOptionsToggle: CallbackItemOptionsToggle;
+  itemOptions: Option[];
+}
+
 export class ItemList {
+  private activeItem?: Item = undefined;
   private element?: HTMLElement = undefined;
   private readonly identifier: string;
   private items: Item[] = [];
-  private readonly options: Option[];
+  private readonly options: ItemListOptions;
   private position: Position = {
     column: -1,
     row: -1,
   };
 
-  constructor(extraOptions: Option[]) {
+  constructor(options: ItemListOptions) {
     this.identifier = "userMenuProviderList_" + _counter++;
-    this.options = this.buildOptions(extraOptions);
-  }
-
-  private buildOptions(extraOptions: Option[]): Option[] {
-    const markAsRead = new Option({
-      label: "Mark as read",
-      click: (option: Option) => {},
-    });
-
-    return [markAsRead, ...extraOptions];
+    this.options = options;
   }
 
   setItems(itemData: ItemData[]): void {
@@ -48,8 +50,26 @@ export class ItemList {
     return this.element;
   }
 
+  hasUnconfirmedItems(): boolean {
+    return this.items.some((item) => !item.isConfirmed());
+  }
+
+  getActiveItem(): Item | undefined {
+    return this.activeItem;
+  }
+
   private toggleOptions(item: Item): void {
-    toggleDropdown(this.identifier, item.getOptionButton());
+    if (this.activeItem) {
+      const closeOnly = this.activeItem === item;
+      DropDown.toggleDropdown(this.identifier, this.activeItem.getOptionButton());
+
+      if (closeOnly) {
+        return;
+      }
+    }
+
+    this.activeItem = item;
+    DropDown.toggleDropdown(this.identifier, item.getOptionButton());
   }
 
   private render(): HTMLElement {
@@ -65,9 +85,24 @@ export class ItemList {
     this.enableTabFocus();
 
     const menu = this.buildDropDownMenu();
-    initDropdown(this.identifier, menu);
+    DropDown.init(this.identifier, menu);
+    DropDown.registerCallback(this.identifier, (_containerId, action) => this.dropDownCallback(action));
 
     return element;
+  }
+
+  private dropDownCallback(action: NotificationAction): void {
+    const item = this.activeItem!;
+
+    const button = item.getOptionButton();
+    if (action === "close") {
+      button.classList.remove("active");
+      this.activeItem = undefined;
+    } else {
+      button.classList.add("active");
+
+      this.options.callbackItemOptionsToggle(item, this.options.itemOptions);
+    }
   }
 
   private enableTabFocus(): void {
@@ -90,7 +125,7 @@ export class ItemList {
     const menu = document.createElement("div");
     menu.classList.add("dropdownMenu");
 
-    this.options.forEach((option) => {
+    this.options.itemOptions.forEach((option) => {
       menu.appendChild(option.getElement());
     });
 
@@ -154,7 +189,5 @@ export class ItemList {
     return cells[column] || null;
   }
 }
-
-type Position = Record<"row" | "column", number>;
 
 export default ItemList;

@@ -6,6 +6,7 @@ define(["require", "exports", "../../../../Date/Util"], function (require, expor
         constructor(data, options) {
             this.buttonOptions = undefined;
             this.element = undefined;
+            this.isBusy = false;
             this.markAsReadIcon = undefined;
             this.data = data;
             this.callbackToggleOptions = options.callbackToggleOptions;
@@ -25,6 +26,17 @@ define(["require", "exports", "../../../../Date/Util"], function (require, expor
         }
         getOptionButton() {
             return this.buttonOptions;
+        }
+        getObjectId() {
+            return this.data.objectId;
+        }
+        markAsConfirmed() {
+            this.data.isConfirmed = true;
+            this.rebuild();
+        }
+        setIsBusy(isBusy) {
+            this.isBusy = isBusy;
+            this.rebuild();
         }
         render() {
             const item = document.createElement("div");
@@ -54,7 +66,11 @@ define(["require", "exports", "../../../../Date/Util"], function (require, expor
             item.appendChild(interaction);
             const markAsRead = document.createElement("span");
             markAsRead.classList.add("userMenuProviderItemOptions");
-            markAsRead.addEventListener("click", (event) => this.callbackToggleOptions(this));
+            markAsRead.addEventListener("click", (event) => {
+                event.preventDefault();
+                event.stopPropagation();
+                this.callbackToggleOptions(this);
+            });
             markAsRead.tabIndex = -1;
             markAsRead.setAttribute("role", "button");
             this.buttonOptions = markAsRead;
@@ -80,10 +96,19 @@ define(["require", "exports", "../../../../Date/Util"], function (require, expor
         rebuild() {
             const element = this.element;
             if (this.data.isConfirmed) {
-                element.classList.remove("userMenuProviderItemOutstanding");
+                element.dataset.isConfirmed = "true";
             }
             else {
-                element.classList.add("userMenuProviderItemOutstanding");
+                element.dataset.isConfirmed = "false";
+            }
+            const optionIcon = this.getOptionButton().querySelector(".icon");
+            if (this.isBusy) {
+                element.dataset.isBusy = "true";
+                optionIcon.classList.replace("fa-ellipsis-h", "fa-spinner");
+            }
+            else {
+                element.dataset.isBusy = "false";
+                optionIcon.classList.replace("fa-spinner", "fa-ellipsis-h");
             }
         }
     }

@@ -86,12 +86,24 @@
 					<a class="jsTooltip" href="{link controller='NotificationList'}{/link}" title="{lang}wcf.user.notification.notifications{/lang}"><span class="icon icon32 fa-bell-o"></span> <span>{lang}wcf.user.notification.notifications{/lang}</span>{if $__wcf->getUserNotificationHandler()->getNotificationCount()} <span class="badge badgeUpdate">{#$__wcf->getUserNotificationHandler()->getNotificationCount()}</span>{/if}</a>
 					{if !OFFLINE || $__wcf->session->getPermission('admin.general.canViewPageDuringOfflineMode')}
 						<script data-relocate="true">
-							$(function() {
-								new WCF.User.Panel.Notification({
-									noItems: '{jslang}wcf.user.notification.noMoreNotifications{/jslang}',
-									settingsLink: '{link controller='NotificationSettings' encode=false}{/link}',
-									showAllLink: '{link controller='NotificationList' encode=false}{/link}',
-									title: '{jslang}wcf.user.notification.notifications{/jslang}'
+							require(["WoltLabSuite/Core/Ui/User/Menu/Provider/Notification"], ({ NotificationProvider }) => {
+								new NotificationProvider({
+									title: "{jslang}wcf.user.notification.notifications{/jslang}",
+									placeholderEmpty: "{jslang}wcf.user.notification.noMoreNotifications{/jslang}",
+									links: new Map([
+										["settings", {
+											label: "TODO: Settings",
+											link: "{link controller='NotificationSettings' encode=false}{/link}",
+										}],
+										["showAll", {
+											label: "TODO: Show All",
+											link: "{link controller='NotificationList' encode=false}{/link}",
+										}],
+									]),
+									itemLinks: new Map([
+										["disable", "TODO: Disable Notification"],
+										["enable", "TODO: Enable Notification"],
+									]),
 								});
 							});
 						</script>
