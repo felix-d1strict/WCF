@@ -13,9 +13,11 @@ define(["require", "exports", "tslib", "../../../../Dom/Util"], function (requir
         }
         show() {
             this.visible = true;
+            this.rebuild();
         }
         hide() {
             this.visible = false;
+            this.rebuild();
         }
         isVisible() {
             return this.visible;

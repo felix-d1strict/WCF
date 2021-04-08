@@ -17,10 +17,14 @@ export class Option {
 
   show(): void {
     this.visible = true;
+
+    this.rebuild();
   }
 
   hide(): void {
     this.visible = false;
+
+    this.rebuild();
   }
 
   isVisible(): boolean {

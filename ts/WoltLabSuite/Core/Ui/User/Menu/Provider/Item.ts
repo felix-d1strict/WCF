@@ -27,7 +27,7 @@ export class Item {
     return this.data.isConfirmed;
   }
 
-  getMetaData(): MetaData {
+  getMetaData(): unknown {
     return this.data.meta;
   }
 
@@ -139,8 +139,6 @@ export class Item {
   }
 }
 
-type MetaData = Record<string, unknown>;
-
 export interface ItemIcon {
   className: string;
   url?: never;
@@ -155,7 +153,7 @@ export interface ItemData {
   image: ItemIcon | ItemImage;
   isConfirmed: boolean;
   link: string;
-  meta: MetaData;
+  meta: unknown;
   objectId: number;
   text: string;
   time: number;

@@ -26,6 +26,7 @@ export class NotificationProvider {
   private placeholderEmpty?: HTMLElement = undefined;
   private placeholderLoading?: HTMLElement = undefined;
   private readonly providerOptions: Option[] = [];
+  private readonly settings = new Map<number, boolean>();
   private state: State = State.Idle;
   private tabIndex = -1;
   private title?: HTMLElement = undefined;
@@ -282,9 +283,20 @@ export class NotificationProvider {
 
     this.itemList.setItems(data);
 
+    this.settings.clear();
+    this.itemList.getItems().forEach((item) => {
+      const settings = this.getSettings(item);
+      this.settings.set(settings.eventID, settings.enabled);
+    });
+
     this.state = State.Ready;
 
     this.render();
+  }
+
+  private getSettings(item: Item): NotificationSettings {
+    const metaData = item.getMetaData() as NotificationMetaData;
+    return metaData.notification;
   }
 
   private async callbackItemOptionSelect(item: Item, option: Option): Promise<void> {
@@ -295,8 +307,12 @@ export class NotificationProvider {
         await this.markAsRead(item);
         break;
 
-      default:
-        console.log("Click", item, option);
+      case "enable":
+        await this.toggleNotification(item, true);
+        break;
+
+      case "disable":
+        await this.toggleNotification(item, false);
         break;
     }
 
@@ -304,6 +320,8 @@ export class NotificationProvider {
   }
 
   private callbackItemOptionsToggle(item: Item, options: Option[]): void {
+    const settings = this.getSettings(item);
+
     options.forEach((option) => {
       switch (option.identifier) {
         case "markAsRead":
@@ -315,13 +333,19 @@ export class NotificationProvider {
           break;
 
         case "enable":
-          // TODO: Hard-coded!
-          option.hide();
+          if (this.settings.get(settings.eventID)) {
+            option.hide();
+          } else {
+            option.show();
+          }
           break;
 
         case "disable":
-          // TODO: Hard-coded!
-          option.show();
+          if (this.settings.get(settings.eventID)) {
+            option.show();
+          } else {
+            option.hide();
+          }
           break;
       }
     });
@@ -393,6 +417,22 @@ export class NotificationProvider {
 
     item.markAsConfirmed();
   }
+
+  private async toggleNotification(item: Item, enable: boolean): Promise<void> {
+    const actionName = enable ? "enableNotifications" : "disableNotifications";
+    const eventId = this.getSettings(item).eventID;
+
+    await Ajax.simpleApi({
+      data: {
+        actionName,
+        className: "wcf\\data\\user\\notification\\event\\UserNotificationEventAction",
+        objectIDs: [eventId],
+      },
+      silent: true,
+    });
+
+    this.settings.set(eventId, enable);
+  }
 }
 
 export default NotificationProvider;
@@ -406,4 +446,13 @@ const enum State {
   Loading,
   Ready,
   Failure,
+}
+
+interface NotificationSettings {
+  enabled: boolean;
+  eventID: number;
+}
+
+interface NotificationMetaData {
+  notification: NotificationSettings;
 }

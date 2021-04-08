@@ -56,6 +56,41 @@ class UserNotificationEventAction extends AbstractDatabaseObjectAction
         return $event;
     }
 
+    public function validateEnableNotifications(): void
+    {
+        $this->userNotificationEvent = $this->getSingleObject();
+    }
+
+    public function enableNotifications(): void
+    {
+        $sql = "INSERT IGNORE INTO  wcf" . WCF_N . "_user_notification_event_to_user
+                                    (userID, eventID, mailNotificationType)
+                VALUES              (?, ?, ?)";
+        $statement = WCF::getDB()->prepareStatement($sql);
+        $statement->execute([
+            WCF::getUser()->userID,
+            $this->userNotificationEvent->eventID,
+            $this->userNotificationEvent->presetMailNotificationType,
+        ]);
+    }
+
+    public function validateDisableNotifications(): void
+    {
+        $this->userNotificationEvent = $this->getSingleObject();
+    }
+
+    public function disableNotifications(): void
+    {
+        $sql = "DELETE FROM wcf" . WCF_N . "_user_notification_event_to_user
+                WHERE       userID = ?
+                        AND eventID = ?";
+        $statement = WCF::getDB()->prepareStatement($sql);
+        $statement->execute([
+            WCF::getUser()->userID,
+            $this->userNotificationEvent->eventID,
+        ]);
+    }
+
     /**
      * Validates the `testEvent` action.
      *

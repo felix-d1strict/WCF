@@ -17,6 +17,7 @@ define(["require", "exports", "tslib", "../../../../Ajax", "../../../../Dom/Chan
             this.placeholderEmpty = undefined;
             this.placeholderLoading = undefined;
             this.providerOptions = [];
+            this.settings = new Map();
             this.state = 0 /* Idle */;
             this.tabIndex = -1;
             this.title = undefined;
@@ -214,8 +215,17 @@ define(["require", "exports", "tslib", "../../../../Ajax", "../../../../Dom/Chan
                 });
             }
             this.itemList.setItems(data);
+            this.settings.clear();
+            this.itemList.getItems().forEach((item) => {
+                const settings = this.getSettings(item);
+                this.settings.set(settings.eventID, settings.enabled);
+            });
             this.state = 2 /* Ready */;
             this.render();
+        }
+        getSettings(item) {
+            const metaData = item.getMetaData();
+            return metaData.notification;
         }
         async callbackItemOptionSelect(item, option) {
             item.setIsBusy(true);
@@ -223,13 +233,17 @@ define(["require", "exports", "tslib", "../../../../Ajax", "../../../../Dom/Chan
                 case "markAsRead":
                     await this.markAsRead(item);
                     break;
-                default:
-                    console.log("Click", item, option);
+                case "enable":
+                    await this.toggleNotification(item, true);
+                    break;
+                case "disable":
+                    await this.toggleNotification(item, false);
                     break;
             }
             item.setIsBusy(false);
         }
         callbackItemOptionsToggle(item, options) {
+            const settings = this.getSettings(item);
             options.forEach((option) => {
                 switch (option.identifier) {
                     case "markAsRead":
@@ -241,12 +255,20 @@ define(["require", "exports", "tslib", "../../../../Ajax", "../../../../Dom/Chan
                         }
                         break;
                     case "enable":
-                        // TODO: Hard-coded!
-                        option.hide();
+                        if (this.settings.get(settings.eventID)) {
+                            option.hide();
+                        }
+                        else {
+                            option.show();
+                        }
                         break;
                     case "disable":
-                        // TODO: Hard-coded!
-                        option.show();
+                        if (this.settings.get(settings.eventID)) {
+                            option.show();
+                        }
+                        else {
+                            option.hide();
+                        }
                         break;
                 }
             });
@@ -306,6 +328,19 @@ define(["require", "exports", "tslib", "../../../../Ajax", "../../../../Dom/Chan
                 silent: true,
             });
             item.markAsConfirmed();
+        }
+        async toggleNotification(item, enable) {
+            const actionName = enable ? "enableNotifications" : "disableNotifications";
+            const eventId = this.getSettings(item).eventID;
+            await Ajax.simpleApi({
+                data: {
+                    actionName,
+                    className: "wcf\\data\\user\\notification\\event\\UserNotificationEventAction",
+                    objectIDs: [eventId],
+                },
+                silent: true,
+            });
+            this.settings.set(eventId, enable);
         }
     }
     exports.NotificationProvider = NotificationProvider;
