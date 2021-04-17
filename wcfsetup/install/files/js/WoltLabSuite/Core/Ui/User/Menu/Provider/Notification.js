@@ -1,4 +1,4 @@
-define(["require", "exports", "tslib", "../../../../Ajax", "../../../../Dom/Change/Listener", "../../../Alignment", "../../../CloseOverlay", "../../../Dropdown/Simple", "./ItemList", "./Option"], function (require, exports, tslib_1, Ajax, Listener_1, UiAlignment, CloseOverlay_1, Simple_1, ItemList_1, Option_1) {
+define(["require", "exports", "tslib", "../../../../Ajax", "../../../../Dom/Change/Listener", "../../../Alignment", "../../../CloseOverlay", "../../../Dropdown/Simple", "./ItemList", "./Option", "../../../../Language"], function (require, exports, tslib_1, Ajax, Listener_1, UiAlignment, CloseOverlay_1, Simple_1, ItemList_1, Option_1, Language) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.NotificationProvider = void 0;
@@ -9,15 +9,16 @@ define(["require", "exports", "tslib", "../../../../Ajax", "../../../../Dom/Chan
     Simple_1 = tslib_1.__importDefault(Simple_1);
     ItemList_1 = tslib_1.__importDefault(ItemList_1);
     Option_1 = tslib_1.__importDefault(Option_1);
+    Language = tslib_1.__importStar(Language);
     class NotificationProvider {
-        constructor(options) {
+        constructor(links) {
             this.body = undefined;
             this.container = undefined;
             this.itemList = undefined;
             this.optionContainer = undefined;
             this.placeholderEmpty = undefined;
             this.placeholderLoading = undefined;
-            this.providerOptions = [];
+            this.providerOptions = new Map();
             this.settings = new Map();
             this.state = 0 /* Idle */;
             this.tabIndex = -1;
@@ -27,7 +28,7 @@ define(["require", "exports", "tslib", "../../../../Ajax", "../../../../Dom/Chan
             this.button.tabIndex = 0;
             this.button.setAttribute("role", "button");
             this.buttonListItem = this.button.parentElement;
-            this.options = options;
+            this.links = links;
         }
         click(event) {
             event.preventDefault();
@@ -120,9 +121,9 @@ define(["require", "exports", "tslib", "../../../../Ajax", "../../../../Dom/Chan
             header.classList.add("userMenuProviderHeader");
             this.title = document.createElement("span");
             this.title.classList.add("userMenuProviderTitle");
-            this.title.textContent = this.options.title;
+            this.title.textContent = Language.get("wcf.user.notification.notifications");
             this.title.tabIndex = -1;
-            this.container.setAttribute("aria-label", this.options.title);
+            this.container.setAttribute("aria-label", Language.get("wcf.user.notification.notifications"));
             header.appendChild(this.title);
             const optionContainer = document.createElement("div");
             optionContainer.classList.add("userMenuProviderOptionContainer", "dropdown");
@@ -143,17 +144,10 @@ define(["require", "exports", "tslib", "../../../../Ajax", "../../../../Dom/Chan
             return header;
         }
         buildOptions() {
-            this.options.links.forEach((data, identifier) => {
-                let option;
-                if (data.link === "#") {
-                    option = new Option_1.default(identifier, data.label, false, (option) => this.optionClick(option));
-                }
-                else {
-                    option = new Option_1.default(identifier, data.label, data.link);
-                }
-                this.providerOptions.push(option);
-            });
             const fragment = document.createDocumentFragment();
+            this.providerOptions.set("markAllAsRead", new Option_1.default("markAllAsRead", Language.get("wcf.user.panel.markAllAsRead"), false, (option) => this.optionClick(option)));
+            this.providerOptions.set("settings", new Option_1.default("settings", Language.get("wcf.user.panel.settings"), this.links.settings));
+            this.providerOptions.set("showAll", new Option_1.default("showAll", Language.get("wcf.user.panel.showAll"), this.links.showAll));
             this.providerOptions.forEach((option) => {
                 fragment.appendChild(option.getElement());
             });
@@ -163,8 +157,8 @@ define(["require", "exports", "tslib", "../../../../Ajax", "../../../../Dom/Chan
             if (action === "close") {
                 return;
             }
-            const markAllAsRead = this.providerOptions.find((option) => option.identifier === "markAllAsRead");
-            if (this.itemList.hasItems()) {
+            const markAllAsRead = this.providerOptions.get("markAllAsRead");
+            if (this.itemList.hasUnconfirmedItems()) {
                 markAllAsRead.show();
             }
             else {
@@ -224,9 +218,9 @@ define(["require", "exports", "tslib", "../../../../Ajax", "../../../../Dom/Chan
                     Simple_1.default.closeAll();
                 };
                 const options = [
-                    new Option_1.default("markAsRead", "TODO: Mark as read", false, callbackClick),
-                    new Option_1.default("enable", "TODO: Enable notification", false, callbackClick),
-                    new Option_1.default("disable", "TODO: Disable notification", false, callbackClick),
+                    new Option_1.default("markAsRead", Language.get("wcf.user.panel.markAsRead"), false, callbackClick),
+                    new Option_1.default("disable", Language.get("wcf.user.notification.disable"), false, callbackClick),
+                    new Option_1.default("enable", Language.get("wcf.user.notification.enable"), false, callbackClick),
                 ];
                 this.itemList = new ItemList_1.default({
                     callbackItemOptionsToggle: (item, options) => this.callbackItemOptionsToggle(item, options),

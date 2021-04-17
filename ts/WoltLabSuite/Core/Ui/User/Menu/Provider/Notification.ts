@@ -9,14 +9,7 @@ import ItemList from "./ItemList";
 import Option from "./Option";
 import * as Language from "../../../../Language";
 
-type LinkData = Record<"label" | "link", string>;
-
-interface NotificationProviderOptions {
-  itemLinks: Map<string, string>;
-  links: Map<string, LinkData>;
-  placeholderEmpty: string;
-  title: string;
-}
+type Links = Record<"settings" | "showAll", string>;
 
 export class NotificationProvider {
   private body?: HTMLElement = undefined;
@@ -24,17 +17,17 @@ export class NotificationProvider {
   private readonly buttonListItem: HTMLLIElement;
   private container?: HTMLElement = undefined;
   private itemList?: ItemList = undefined;
-  private readonly options: NotificationProviderOptions;
+  private readonly links: Links;
   private optionContainer?: HTMLElement = undefined;
   private placeholderEmpty?: HTMLElement = undefined;
   private placeholderLoading?: HTMLElement = undefined;
-  private readonly providerOptions: Option[] = [];
+  private readonly providerOptions = new Map<string, Option>();
   private readonly settings = new Map<number, boolean>();
   private state: State = State.Idle;
   private tabIndex = -1;
   private title?: HTMLElement = undefined;
 
-  constructor(options: NotificationProviderOptions) {
+  constructor(links: Links) {
     this.button = document.querySelector("#userNotifications > a") as HTMLAnchorElement;
     this.button.addEventListener("click", (event) => this.click(event));
     this.button.tabIndex = 0;
@@ -42,7 +35,7 @@ export class NotificationProvider {
 
     this.buttonListItem = this.button.parentElement as HTMLLIElement;
 
-    this.options = options;
+    this.links = links;
   }
 
   private click(event: MouseEvent): void {
@@ -165,9 +158,9 @@ export class NotificationProvider {
 
     this.title = document.createElement("span");
     this.title.classList.add("userMenuProviderTitle");
-    this.title.textContent = this.options.title;
+    this.title.textContent = Language.get("wcf.user.notification.notifications");
     this.title.tabIndex = -1;
-    this.container!.setAttribute("aria-label", this.options.title);
+    this.container!.setAttribute("aria-label", Language.get("wcf.user.notification.notifications"));
     header.appendChild(this.title);
 
     const optionContainer = document.createElement("div");
@@ -197,18 +190,24 @@ export class NotificationProvider {
   }
 
   private buildOptions(): DocumentFragment {
-    this.options.links.forEach((data, identifier) => {
-      let option: Option;
-      if (data.link === "#") {
-        option = new Option(identifier, data.label, false, (option) => this.optionClick(option));
-      } else {
-        option = new Option(identifier, data.label, data.link);
-      }
-
-      this.providerOptions.push(option);
-    });
-
     const fragment = document.createDocumentFragment();
+
+    this.providerOptions.set(
+      "markAllAsRead",
+      new Option("markAllAsRead", Language.get("wcf.user.panel.markAllAsRead"), false, (option) =>
+        this.optionClick(option),
+      ),
+    );
+    this.providerOptions.set(
+      "settings",
+      new Option("settings", Language.get("wcf.user.panel.settings"), this.links.settings),
+    );
+
+    this.providerOptions.set(
+      "showAll",
+      new Option("showAll", Language.get("wcf.user.panel.showAll"), this.links.showAll),
+    );
+
     this.providerOptions.forEach((option) => {
       fragment.appendChild(option.getElement());
     });
@@ -221,8 +220,8 @@ export class NotificationProvider {
       return;
     }
 
-    const markAllAsRead = this.providerOptions.find((option) => option.identifier === "markAllAsRead")!;
-    if (this.itemList!.hasItems()) {
+    const markAllAsRead = this.providerOptions.get("markAllAsRead")!;
+    if (this.itemList!.hasUnconfirmedItems()) {
       markAllAsRead.show();
     } else {
       markAllAsRead.hide();
@@ -295,9 +294,9 @@ export class NotificationProvider {
         UiDropdownSimple.closeAll();
       };
       const options = [
-        new Option("markAsRead", "TODO: Mark as read", false, callbackClick),
-        new Option("enable", "TODO: Enable notification", false, callbackClick),
-        new Option("disable", "TODO: Disable notification", false, callbackClick),
+        new Option("markAsRead", Language.get("wcf.user.panel.markAsRead"), false, callbackClick),
+        new Option("disable", Language.get("wcf.user.notification.disable"), false, callbackClick),
+        new Option("enable", Language.get("wcf.user.notification.enable"), false, callbackClick),
       ];
       this.itemList = new ItemList({
         callbackItemOptionsToggle: (item, options) => this.callbackItemOptionsToggle(item, options),

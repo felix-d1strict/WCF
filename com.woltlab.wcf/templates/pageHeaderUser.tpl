@@ -88,31 +88,15 @@
 						<script data-relocate="true">
 							require(["WoltLabSuite/Core/Language", "WoltLabSuite/Core/Ui/User/Menu/Provider/Notification"], (Language, { NotificationProvider }) => {
 								Language.addObject({
+									"wcf.user.notification.disable": "{jslang}wcf.user.notification.disable{/jslang}",
+									"wcf.user.notification.enable": "{jslang}wcf.user.notification.enable{/jslang}",
 									"wcf.user.notification.notifications": "{jslang}wcf.user.notification.notifications{/jslang}",
 									"wcf.user.notification.noMoreNotifications": "{jslang}wcf.user.notification.noMoreNotifications{/jslang}",
 								});
 
 								new NotificationProvider({
-									title: "{jslang}wcf.user.notification.notifications{/jslang}",
-									placeholderEmpty: "{jslang}wcf.user.notification.noMoreNotifications{/jslang}",
-									links: new Map([
-										["markAllAsRead", {
-											label: "TODO: Mark All As Read",
-											link: "#",
-										}],
-										["settings", {
-											label: "TODO: Settings",
-											link: "{link controller='NotificationSettings' encode=false}{/link}",
-										}],
-										["showAll", {
-											label: "TODO: Show All",
-											link: "{link controller='NotificationList' encode=false}{/link}",
-										}],
-									]),
-									itemLinks: new Map([
-										["disable", "TODO: Disable Notification"],
-										["enable", "TODO: Enable Notification"],
-									]),
+									settings: "{link controller='NotificationSettings' encode=false}{/link}",
+									showAll: "{link controller='NotificationList' encode=false}{/link}",
 								});
 							});
 						</script>
