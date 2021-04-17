@@ -86,11 +86,20 @@
 					<a class="jsTooltip" href="{link controller='NotificationList'}{/link}" title="{lang}wcf.user.notification.notifications{/lang}"><span class="icon icon32 fa-bell-o"></span> <span>{lang}wcf.user.notification.notifications{/lang}</span>{if $__wcf->getUserNotificationHandler()->getNotificationCount()} <span class="badge badgeUpdate">{#$__wcf->getUserNotificationHandler()->getNotificationCount()}</span>{/if}</a>
 					{if !OFFLINE || $__wcf->session->getPermission('admin.general.canViewPageDuringOfflineMode')}
 						<script data-relocate="true">
-							require(["WoltLabSuite/Core/Ui/User/Menu/Provider/Notification"], ({ NotificationProvider }) => {
+							require(["WoltLabSuite/Core/Language", "WoltLabSuite/Core/Ui/User/Menu/Provider/Notification"], (Language, { NotificationProvider }) => {
+								Language.addObject({
+									"wcf.user.notification.notifications": "{jslang}wcf.user.notification.notifications{/jslang}",
+									"wcf.user.notification.noMoreNotifications": "{jslang}wcf.user.notification.noMoreNotifications{/jslang}",
+								});
+
 								new NotificationProvider({
 									title: "{jslang}wcf.user.notification.notifications{/jslang}",
 									placeholderEmpty: "{jslang}wcf.user.notification.noMoreNotifications{/jslang}",
 									links: new Map([
+										["markAllAsRead", {
+											label: "TODO: Mark All As Read",
+											link: "#",
+										}],
 										["settings", {
 											label: "TODO: Settings",
 											link: "{link controller='NotificationSettings' encode=false}{/link}",

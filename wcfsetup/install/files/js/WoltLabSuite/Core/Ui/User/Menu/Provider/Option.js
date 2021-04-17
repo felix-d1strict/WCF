@@ -4,12 +4,13 @@ define(["require", "exports", "tslib", "../../../../Dom/Util"], function (requir
     exports.Option = void 0;
     Util_1 = tslib_1.__importDefault(Util_1);
     class Option {
-        constructor(identifier, label, callbackClick) {
+        constructor(identifier, label, link, callbackClick) {
             this.element = undefined;
             this.visible = true;
             this.callbackClick = callbackClick;
             this.identifier = identifier;
             this.label = label;
+            this.link = link;
         }
         show() {
             this.visible = true;
@@ -33,12 +34,17 @@ define(["require", "exports", "tslib", "../../../../Dom/Util"], function (requir
             const listItem = document.createElement("li");
             const link = document.createElement("a");
             link.textContent = this.label;
-            link.href = "#";
-            link.addEventListener("click", (event) => {
-                event.preventDefault();
-                event.stopPropagation();
-                this.callbackClick(this);
-            });
+            if (this.link === false) {
+                link.href = "#";
+                link.addEventListener("click", (event) => {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    this.callbackClick(this);
+                });
+            }
+            else {
+                link.href = this.link;
+            }
             listItem.appendChild(link);
             return listItem;
         }

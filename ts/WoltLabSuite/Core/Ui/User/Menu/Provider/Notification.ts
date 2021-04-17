@@ -7,6 +7,7 @@ import UiDropdownSimple from "../../../Dropdown/Simple";
 import Item, { ItemData } from "./Item";
 import ItemList from "./ItemList";
 import Option from "./Option";
+import * as Language from "../../../../Language";
 
 type LinkData = Record<"label" | "link", string>;
 
@@ -20,9 +21,11 @@ interface NotificationProviderOptions {
 export class NotificationProvider {
   private body?: HTMLElement = undefined;
   private readonly button: HTMLAnchorElement;
+  private readonly buttonListItem: HTMLLIElement;
   private container?: HTMLElement = undefined;
   private itemList?: ItemList = undefined;
   private readonly options: NotificationProviderOptions;
+  private optionContainer?: HTMLElement = undefined;
   private placeholderEmpty?: HTMLElement = undefined;
   private placeholderLoading?: HTMLElement = undefined;
   private readonly providerOptions: Option[] = [];
@@ -36,6 +39,8 @@ export class NotificationProvider {
     this.button.addEventListener("click", (event) => this.click(event));
     this.button.tabIndex = 0;
     this.button.setAttribute("role", "button");
+
+    this.buttonListItem = this.button.parentElement as HTMLLIElement;
 
     this.options = options;
   }
@@ -73,8 +78,7 @@ export class NotificationProvider {
 
   private keydown(event: KeyboardEvent): void {
     if (event.key === "Escape") {
-      // TODO: The signature of the `close()` method is awful.
-      this.close(this.container!, this.button!);
+      this.close();
       this.button!.focus();
     }
 
@@ -124,18 +128,16 @@ export class NotificationProvider {
   }
 
   private toggle(): void {
-    const listItem = this.button.parentElement!;
-
-    const container = this.container!;
-    if (container.parentElement !== null) {
-      this.close(container, listItem);
+    if (this.container!.parentElement !== null) {
+      this.close();
     } else {
-      this.open(container, listItem);
+      this.open();
     }
   }
 
-  private open(container: HTMLElement, listItem: HTMLElement): void {
-    listItem.classList.add("open");
+  private open(): void {
+    const container = this.container!;
+    this.buttonListItem.classList.add("open");
     document.body.appendChild(container);
 
     this.render();
@@ -145,15 +147,13 @@ export class NotificationProvider {
     this.title!.focus();
 
     const identifier = "WoltLabSuite/Core/Ui/User/Menu/Provider";
-    UiCloseOverlay.add(identifier, () => {
-      this.close(container, listItem);
-    });
+    UiCloseOverlay.add(identifier, () => this.close());
   }
 
-  private close(container: HTMLElement, listItem: HTMLElement): void {
-    listItem.classList.remove("open");
+  private close(): void {
+    this.buttonListItem.classList.remove("open");
 
-    container.remove();
+    this.container!.remove();
 
     const identifier = "WoltLabSuite/Core/Ui/User/Menu/Provider";
     UiCloseOverlay.remove(identifier);
@@ -191,14 +191,21 @@ export class NotificationProvider {
       this.toggleOptions(containerId, action),
     );
 
+    this.optionContainer = optionContainer;
+
     return header;
   }
 
   private buildOptions(): DocumentFragment {
-    this.providerOptions.push(new Option("markAllAsRead", "TODO: Mark all as read", (_option: Option) => {}));
-
     this.options.links.forEach((data, identifier) => {
-      this.providerOptions.push(new Option(identifier, data.link, (_option: Option) => {}));
+      let option: Option;
+      if (data.link === "#") {
+        option = new Option(identifier, data.label, false, (option) => this.optionClick(option));
+      } else {
+        option = new Option(identifier, data.label, data.link);
+      }
+
+      this.providerOptions.push(option);
     });
 
     const fragment = document.createDocumentFragment();
@@ -222,6 +229,23 @@ export class NotificationProvider {
     }
 
     markAllAsRead.rebuild();
+  }
+
+  private async optionClick(option: Option): Promise<void> {
+    if (option.identifier === "markAllAsRead") {
+      await Ajax.simpleApi({
+        data: {
+          actionName: "markAllAsConfirmed",
+          className: "wcf\\data\\user\\notification\\UserNotificationAction",
+        },
+      });
+
+      this.itemList!.getItems().forEach((item) => {
+        item.markAsConfirmed();
+      });
+    }
+
+    UiDropdownSimple.close(this.optionContainer!.id);
   }
 
   private buildBody(): HTMLElement {
@@ -271,9 +295,9 @@ export class NotificationProvider {
         UiDropdownSimple.closeAll();
       };
       const options = [
-        new Option("markAsRead", "TODO: Mark as read", callbackClick),
-        new Option("enable", "TODO: Enable notification", callbackClick),
-        new Option("disable", "TODO: Disable notification", callbackClick),
+        new Option("markAsRead", "TODO: Mark as read", false, callbackClick),
+        new Option("enable", "TODO: Enable notification", false, callbackClick),
+        new Option("disable", "TODO: Disable notification", false, callbackClick),
       ];
       this.itemList = new ItemList({
         callbackItemOptionsToggle: (item, options) => this.callbackItemOptionsToggle(item, options),

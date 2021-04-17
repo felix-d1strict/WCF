@@ -4,15 +4,19 @@ export type CallbackClick = (option: Option) => void;
 
 export class Option {
   readonly identifier: string;
-  private readonly callbackClick: CallbackClick;
+  private readonly callbackClick: CallbackClick | undefined;
   private element?: HTMLLIElement = undefined;
+  private readonly link: string | false;
   private readonly label: string;
   private visible = true;
 
-  constructor(identifier: string, label: string, callbackClick: CallbackClick) {
+  constructor(identifier: string, label: string, link: string);
+  constructor(identifier: string, label: string, link: false, callbackClick: CallbackClick);
+  constructor(identifier: string, label: string, link: string | false, callbackClick?: CallbackClick) {
     this.callbackClick = callbackClick;
     this.identifier = identifier;
     this.label = label;
+    this.link = link;
   }
 
   show(): void {
@@ -46,13 +50,18 @@ export class Option {
 
     const link = document.createElement("a");
     link.textContent = this.label;
-    link.href = "#";
-    link.addEventListener("click", (event) => {
-      event.preventDefault();
-      event.stopPropagation();
+    if (this.link === false) {
+      link.href = "#";
+      link.addEventListener("click", (event) => {
+        event.preventDefault();
+        event.stopPropagation();
 
-      this.callbackClick(this);
-    });
+        this.callbackClick!(this);
+      });
+    } else {
+      link.href = this.link;
+    }
+
     listItem.appendChild(link);
 
     return listItem;

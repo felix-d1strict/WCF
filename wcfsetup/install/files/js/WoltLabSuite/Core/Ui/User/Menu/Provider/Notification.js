@@ -14,6 +14,7 @@ define(["require", "exports", "tslib", "../../../../Ajax", "../../../../Dom/Chan
             this.body = undefined;
             this.container = undefined;
             this.itemList = undefined;
+            this.optionContainer = undefined;
             this.placeholderEmpty = undefined;
             this.placeholderLoading = undefined;
             this.providerOptions = [];
@@ -25,6 +26,7 @@ define(["require", "exports", "tslib", "../../../../Ajax", "../../../../Dom/Chan
             this.button.addEventListener("click", (event) => this.click(event));
             this.button.tabIndex = 0;
             this.button.setAttribute("role", "button");
+            this.buttonListItem = this.button.parentElement;
             this.options = options;
         }
         click(event) {
@@ -52,8 +54,7 @@ define(["require", "exports", "tslib", "../../../../Ajax", "../../../../Dom/Chan
         }
         keydown(event) {
             if (event.key === "Escape") {
-                // TODO: The signature of the `close()` method is awful.
-                this.close(this.container, this.button);
+                this.close();
                 this.button.focus();
             }
             if (event.key === "Tab") {
@@ -91,29 +92,26 @@ define(["require", "exports", "tslib", "../../../../Ajax", "../../../../Dom/Chan
             return elements[this.tabIndex] || null;
         }
         toggle() {
-            const listItem = this.button.parentElement;
-            const container = this.container;
-            if (container.parentElement !== null) {
-                this.close(container, listItem);
+            if (this.container.parentElement !== null) {
+                this.close();
             }
             else {
-                this.open(container, listItem);
+                this.open();
             }
         }
-        open(container, listItem) {
-            listItem.classList.add("open");
+        open() {
+            const container = this.container;
+            this.buttonListItem.classList.add("open");
             document.body.appendChild(container);
             this.render();
             UiAlignment.set(container, this.button, { horizontal: "center" });
             this.title.focus();
             const identifier = "WoltLabSuite/Core/Ui/User/Menu/Provider";
-            CloseOverlay_1.default.add(identifier, () => {
-                this.close(container, listItem);
-            });
+            CloseOverlay_1.default.add(identifier, () => this.close());
         }
-        close(container, listItem) {
-            listItem.classList.remove("open");
-            container.remove();
+        close() {
+            this.buttonListItem.classList.remove("open");
+            this.container.remove();
             const identifier = "WoltLabSuite/Core/Ui/User/Menu/Provider";
             CloseOverlay_1.default.remove(identifier);
         }
@@ -141,12 +139,19 @@ define(["require", "exports", "tslib", "../../../../Ajax", "../../../../Dom/Chan
             optionContainer.appendChild(optionMenu);
             Simple_1.default.init(options);
             Simple_1.default.registerCallback(optionContainer.id, (containerId, action) => this.toggleOptions(containerId, action));
+            this.optionContainer = optionContainer;
             return header;
         }
         buildOptions() {
-            this.providerOptions.push(new Option_1.default("markAllAsRead", "TODO: Mark all as read", (_option) => { }));
             this.options.links.forEach((data, identifier) => {
-                this.providerOptions.push(new Option_1.default(identifier, data.link, (_option) => { }));
+                let option;
+                if (data.link === "#") {
+                    option = new Option_1.default(identifier, data.label, false, (option) => this.optionClick(option));
+                }
+                else {
+                    option = new Option_1.default(identifier, data.label, data.link);
+                }
+                this.providerOptions.push(option);
             });
             const fragment = document.createDocumentFragment();
             this.providerOptions.forEach((option) => {
@@ -166,6 +171,20 @@ define(["require", "exports", "tslib", "../../../../Ajax", "../../../../Dom/Chan
                 markAllAsRead.hide();
             }
             markAllAsRead.rebuild();
+        }
+        async optionClick(option) {
+            if (option.identifier === "markAllAsRead") {
+                await Ajax.simpleApi({
+                    data: {
+                        actionName: "markAllAsConfirmed",
+                        className: "wcf\\data\\user\\notification\\UserNotificationAction",
+                    },
+                });
+                this.itemList.getItems().forEach((item) => {
+                    item.markAsConfirmed();
+                });
+            }
+            Simple_1.default.close(this.optionContainer.id);
         }
         buildBody() {
             const body = document.createElement("div");
@@ -205,9 +224,9 @@ define(["require", "exports", "tslib", "../../../../Ajax", "../../../../Dom/Chan
                     Simple_1.default.closeAll();
                 };
                 const options = [
-                    new Option_1.default("markAsRead", "TODO: Mark as read", callbackClick),
-                    new Option_1.default("enable", "TODO: Enable notification", callbackClick),
-                    new Option_1.default("disable", "TODO: Disable notification", callbackClick),
+                    new Option_1.default("markAsRead", "TODO: Mark as read", false, callbackClick),
+                    new Option_1.default("enable", "TODO: Enable notification", false, callbackClick),
+                    new Option_1.default("disable", "TODO: Disable notification", false, callbackClick),
                 ];
                 this.itemList = new ItemList_1.default({
                     callbackItemOptionsToggle: (item, options) => this.callbackItemOptionsToggle(item, options),
