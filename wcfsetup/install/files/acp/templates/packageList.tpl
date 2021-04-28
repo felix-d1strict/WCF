@@ -63,7 +63,11 @@
 {/if}
 
 {if $availableUpgradeVersion !== null}
-	<p class="info">{lang}wcf.acp.availableUpgrade{/lang}</p>
+	{if $upgradeOverrideEnabled}
+		<p class="info">{lang}wcf.acp.package.upgradeOverrideEnabled{/lang}</p>
+	{else}
+		<p class="info">{lang}wcf.acp.package.availableUpgradeVersion{/lang}</p>
+	{/if}
 {/if}
 
 {hascontent}
