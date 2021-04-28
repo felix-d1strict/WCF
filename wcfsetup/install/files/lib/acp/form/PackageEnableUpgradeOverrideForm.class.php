@@ -18,7 +18,7 @@ use wcf\system\registry\RegistryHandler;
  * @package	WoltLabSuite\Core\Acp\Form
  * @since	5.3
  */
-class PackageEnableUpgradeOverrideForm extends AbstractFormBuilderForm {
+final class PackageEnableUpgradeOverrideForm extends AbstractFormBuilderForm {
 	/**
 	 * @inheritDoc
 	 */
