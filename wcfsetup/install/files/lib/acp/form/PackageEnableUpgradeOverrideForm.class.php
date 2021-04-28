@@ -68,13 +68,11 @@ final class PackageEnableUpgradeOverrideForm extends AbstractFormBuilderForm {
 						$this->id('rejectEverything');
 					}
 
-					public function getFieldHtml(): string
-					{
+					public function getFieldHtml() {
 						return '';
 					}
 
-					public function getHtml(): string
-					{
+					public function getHtml() {
 						return '';
 					}
 
