@@ -50,8 +50,7 @@ class PackageEnableUpgradeOverrideForm extends AbstractFormBuilderForm {
 	/**
 	 * @inheritDoc
 	 */
-	public function save()
-	{
+	public function save() {
 		AbstractForm::save();
 
 		$formData = $this->form->getData();
