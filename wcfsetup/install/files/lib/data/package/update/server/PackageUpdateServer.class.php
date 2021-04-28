@@ -361,6 +361,7 @@ class PackageUpdateServer extends DatabaseObject {
 	 * Returns whether the official update servers will point to WCF::AVAILABLE_UPGRADE_VERSION.
 	 *
 	 * @return bool
+	 * @since 5.3
 	 */
 	public static final function isUpgradeOverrideEnabled() {
 		if (WCF::AVAILABLE_UPGRADE_VERSION === null) {
