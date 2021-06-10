@@ -471,9 +471,10 @@ class WCF
         // https://github.com/WoltLab/WCF/issues/3913
         \define('MODULE_MASTER_PASSWORD', 0);
 
-        // The IP address blocklist was removed in 5.5.
+        // The IP address and User Agent blocklist was removed in 5.5.
         // https://github.com/WoltLab/WCF/issues/3914
         \define('BLACKLIST_IP_ADDRESSES', '');
+        \define('BLACKLIST_USER_AGENTS', '');
     }
 
     /**
@@ -538,19 +539,6 @@ class WCF
     protected function initBlacklist()
     {
         $isAjax = isset($_SERVER['HTTP_X_REQUESTED_WITH']) && ($_SERVER['HTTP_X_REQUESTED_WITH'] == 'XMLHttpRequest');
-
-        if (\defined('BLACKLIST_USER_AGENTS') && BLACKLIST_USER_AGENTS != '') {
-            if (!StringUtil::executeWordFilter(UserUtil::getUserAgent(), BLACKLIST_USER_AGENTS)) {
-                if ($isAjax) {
-                    throw new AJAXException(
-                        self::getLanguage()->getDynamicVariable('wcf.ajax.error.permissionDenied'),
-                        AJAXException::INSUFFICIENT_PERMISSIONS
-                    );
-                } else {
-                    throw new PermissionDeniedException();
-                }
-            }
-        }
 
         // handle banned users
         if (self::getUser()->userID && self::getUser()->banned && !self::getUser()->hasOwnerAccess()) {
