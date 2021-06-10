@@ -23,7 +23,6 @@ use wcf\system\exception\ErrorException;
 use wcf\system\exception\IPrintableException;
 use wcf\system\exception\NamedUserException;
 use wcf\system\exception\ParentClassException;
-use wcf\system\exception\PermissionDeniedException;
 use wcf\system\exception\SystemException;
 use wcf\system\language\LanguageFactory;
 use wcf\system\package\PackageInstallationDispatcher;
@@ -40,7 +39,6 @@ use wcf\util\DirectoryUtil;
 use wcf\util\FileUtil;
 use wcf\util\HeaderUtil;
 use wcf\util\StringUtil;
-use wcf\util\UserUtil;
 
 // phpcs:disable PSR1.Files.SideEffects
 
