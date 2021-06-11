@@ -713,8 +713,6 @@ block:wcf.acp.option.blacklist_sfs_action.block]]></selectoptions>
 				<defaultvalue>disable</defaultvalue>
 			</option>
 			<!-- /security.blacklist.stopforumspam -->
-			<!-- security.blacklist.custom -->
-			<!-- /security.blacklist.custom -->
 			<!-- security.antispam.captcha -->
 			<option name="captcha_type">
 				<categoryname>security.antispam.captcha</categoryname>
